@@ -1,0 +1,393 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jul  6 08:23:31 2025
+
+@author: manim
+"""
+
+import iapws95 as eos
+
+import numpy as np
+
+def find_last_occurrence(filepath, search_string):
+    """
+    Returns the line index (0-based) of the last line in the file that contains search_string.
+    Returns None if the string is not found.
+    """
+    last_index = None
+    with open(filepath, "r") as file:
+        for i, line in enumerate(file):
+            if search_string in line:
+                last_index = i
+    return last_index
+
+
+
+def read_temperature_file(filepath):
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+
+    # === Extract X Coordinates ===
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 3
+    x_coords = []
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 8
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+
+    # === Extract Y Coordinates ===
+    try:
+      y_start = lines.index(next(l for l in lines if "Y-Direction Node Coordinate" in l)) + 2
+      y_coords = []
+      while lines[y_start].strip():
+        parts = lines[y_start].split()
+        y_coords.extend([float(p) for p in parts])
+        y_start += 1
+    except:
+        y_coords =[1]
+    # === Extract Z Coordinates ===
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 3
+    z_coords = []
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 8
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 13
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 18
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+
+    # === Extract Temperature Field ===
+    #temp_start = lines.index(next(l for l in lines[::-1] if "--- Temperature Values" in l)) + 2
+    temp_start =find_last_occurrence(filepath, "Temperature")+3
+    temperature = []
+    for line in lines[temp_start:]:
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        row = [float(p) for p in parts[1:]]  # skip Z-index!exitr
+        temperature.append(row)
+    for i in range(len(temperature)):
+        line = lines[temp_start+4+len(z_coords)+i]
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        temperature[i]=np.array(temperature[i]+[float(p) for p in parts[1:]])  # skip Z-index))
+        # temperature.append(row)
+
+    # Convert everything to numpy arrays
+    x = np.array(x_coords)
+    y = np.array(y_coords)
+    z = np.array(z_coords)
+    T = np.array(temperature)  # shape should be (len(z), len(x))
+
+    return x, y, z, T 
+
+def read_porosity(filepath):
+    with open(filepath, 'r') as f:
+        lines = f.readlines()
+    poro_start =find_last_occurrence(filepath, "Media Porosity")+2
+    poro = []
+    poroline = []
+    for line in lines[poro_start:]:
+        if ("Row") in line:
+            if (len(poroline)>0):
+               poro.append(poroline)
+            poroline=[]
+
+        elif (len(line)==0 or "***" in line):
+            break
+        else:
+            for w in line.split():
+              poroline.append(float(w))
+    poro.append(poroline)
+    poro = np.array(poro)
+
+    return poro
+
+def read_density_water_file(filepath):
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+
+    # === Extract X Coordinates ===
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 3
+    x_coords = []
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 8
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+
+    # === Extract Y Coordinates ===
+    try :
+      y_start = lines.index(next(l for l in lines if "Y-Direction Node Coordinate" in l)) + 2
+      y_coords = []
+      while lines[y_start].strip():
+        parts = lines[y_start].split()
+        y_coords.extend([float(p) for p in parts])
+        y_start += 1
+    except:
+        y_coords = [1]
+
+    # === Extract Z Coordinates ===
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 3
+    z_coords = []
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 8
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 13
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 18
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+
+    # === Extract Temperature Field ===
+    temp_start =find_last_occurrence(filepath, "Water Density")+3
+    temperature = [] 
+    for line in lines[temp_start:]:
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        row = [float(p) for p in parts[1:]]  # skip Z-index!exitr
+        temperature.append(row)
+    for i in range(len(temperature)):
+        line = lines[temp_start+4+len(z_coords)+i]
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        temperature[i]=np.array(temperature[i]+[float(p) for p in parts[1:]])  # skip Z-index))
+        # temperature.append(row)
+
+    # Convert everything to numpy arrays
+    x = np.array(x_coords)
+    y = np.array(y_coords)
+    z = np.array(z_coords)
+    T = np.array(temperature)  # shape should be (len(z), len(x))
+
+    return x, y, z, T 
+
+def read_density_steam_file(filepath):
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+
+    # === Extract X Coordinates ===
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 3
+    x_coords = []
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+    x_start = lines.index(next(l for l in lines if "R-Direction Node Coordinate" in l)) + 8
+    while lines[x_start].strip():
+        parts = lines[x_start].split()
+        x_coords.extend([float(p) for p in parts])
+        x_start += 1
+
+    # === Extract Y Coordinates ===
+    try:
+      y_start = lines.index(next(l for l in lines if "Y-Direction Node Coordinate" in l)) + 2
+      y_coords = []
+      while lines[y_start].strip():
+        parts = lines[y_start].split()
+        y_coords.extend([float(p) for p in parts])
+        y_start += 1
+    except:
+        y_coords = [1]
+
+    # === Extract Z Coordinates ===
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 3
+    z_coords = []
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 8
+    while lines[z_start].strip():
+        parts = lines[z_start].split()
+        z_coords.extend([float(p) for p in parts])
+        z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 13
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+    # z_start = lines.index(next(l for l in lines if "Z-Direction Node Coordinate" in l)) + 18
+    # while lines[z_start].strip():
+    #     parts = lines[z_start].split()
+    #     z_coords.extend([float(p) for p in parts])
+    #     z_start += 1
+
+    # === Extract Temperature Field ===
+    temp_start =find_last_occurrence(filepath, "Steam Density")+3
+    temperature = [] 
+    for line in lines[temp_start:]:
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        row = [float(p) for p in parts[1:]]  # skip Z-index!exitr
+        temperature.append(row)
+    for i in range(len(temperature)):
+        line = lines[temp_start+4+len(z_coords)+i]
+        parts = line.strip().split()
+        if len(parts) < 2:
+            break
+        temperature[i]=np.array(temperature[i]+[float(p) for p in parts[1:]])  # skip Z-index))
+        # temperature.append(row)
+
+    # Convert everything to numpy arrays
+    x = np.array(x_coords)
+    y = np.array(y_coords)
+    z = np.array(z_coords)
+    T = np.array(temperature)  # shape should be (len(z), len(x))
+
+    return x, y, z, T 
+
+def boom_eval(probname):
+    x, y, z, temperature = read_temperature_file("Out_temperature."+probname+'.out')
+    # print("qui A abbiamo x e z:", len(x), len(z), temperature.shape)
+    x, y, z, waterrho = read_density_water_file("Out_density."+probname+'.out')
+    # print("qui B abbiamo x e z:", len(x), len(z), waterrho.shape)
+    x, y, z, steamrho = read_density_steam_file("Out_density."+probname+'.out')
+    poro = read_porosity("Out_porosity."+probname+'.out')
+    # print("qui C abbiamo x e z:", len(x), len(z))
+    rockrho = read_rock_density(probname+'.in')
+    endtime = read_sim_end(probname)
+
+
+
+    temperature = temperature + 273.15
+    waterrho *= 1000
+    steamrho *= 1000
+
+    rho_eg = np.zeros(temperature.shape)
+    rho_el = np.zeros(temperature.shape)
+    peq = np.zeros(temperature.shape)
+    for i in range(temperature.shape[0]):
+        for j in range(temperature.shape[1]):
+            if (temperature[i,j] < eos.Tc):
+                rho_eg[i,j], rho_el[i,j], peq[i,j] = eos.find_equilibrium_broyden(temperature[i,j])
+                #print("EQULIBRIUM")
+                #print(rho_eg[i,j], rho_el[i,j], peq[i,j])
+                Sg = -(rho_el-waterrho)/(rho_el-rho_eg)
+                Sl = 1- Sg 
+                Sg[Sg<0.01]=0
+                Sl[Sl>0.99]=1
+            else:
+               rho_eg[i,j] = waterrho[i,j]
+               rho_el[i,j] = waterrho[i,j]
+               peq[i,j]    = eos.EOS_pressure(rho_el[i,j], temperature[i,j])
+               Sl = np.ones(rho_eg.shape)
+               Sg = np.zeros(rho_eg.shape)
+
+    S3 = 2180
+    Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+    
+    overcome = peq/Pthresh
+    overcome_mean = overcome.mean()
+
+
+
+    #boom_HT = eos.boom_rev(waterrho, temperature)
+    #print(rho_el[0,0], temperature[0,0])
+    ##boom_liq = eos.boom_rev(rho_el, temperature)
+    #boom_liq[boom_liq<0]=0
+    #boom_gas = eos.boom_rev(rho_eg, temperature)
+    #boom_gas[np.isnan(boom_gas)]=0
+    #boom_gas[boom_gas<0]=0
+    boom_total = eos.boom_rev(rho_eg, Sg, rho_el, Sl, temperature)
+    integrated_explo = integrate_explo(x, z, boom_total)
+    rock_potential_energy = integrate_rock_weight(x,z,rockrho)
+    # print("qui D abbiamo x e z:", len(x), len(z))
+    # print("Explosive energy:", integrated_explo)
+    # print("Rock potential energy:", rock_potential_energy)
+    #print("integrated explo",integrated_explo)
+    #print("rock_potential_energy", rock_potential_energy)
+
+    return  overcome_mean, endtime, integrated_explo- rock_potential_energy
+
+
+def integrate_rock_weight(x,z,rockdensi):
+    return (x[-1]-x[0])*(z[-1])*rockdensi*9.81*1000
+    
+def integrate_explo(x, z, boom_total):
+    nx = len(x)
+    nz = len(z)
+    boom_integrated = 0
+    print(boom_total.shape, nx, nz)
+    print(x)
+    print(z)
+    for i in range(nx-1):
+        for j in range(nz-1):
+            boom_integrated += (x[i+1]-[i])*(z[j+1]-z[j])*boom_total[j,i]
+    return boom_integrated
+
+
+def read_rock_density(filepath):
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+    iline = 0
+    for line in lines:
+        if ("rxden" in line):
+            iline+=2
+            break
+        else:
+            iline+=1
+    den_string = lines[iline].split()[1]
+    if ("," in den_string):
+        den_string = den_string[:-1]
+    rockdensity = float(den_string)
+    print("rockdensi", rockdensity)
+    return rockdensity 
+
+def read_sim_end(probname):
+    filepath = "Calc_log."+probname+'.out'
+    with open(filepath, 'r') as fin:
+        lines = fin.readlines()
+    for line in lines[::-1]:
+        if ("Last time value calculated") in line:
+            wrds = line.split()
+            endtime = float(wrds[5])
+            break
+        elif ("Simulation time" ) in line:
+            wrds = line.split()
+            endtime = float(wrds[6])
+            break
+    return endtime
+
+# import os
+# #def integrate_weight
+# os.chdir("tuno0000")
+# print(boom_eval("tuno0000"))
+
+    
