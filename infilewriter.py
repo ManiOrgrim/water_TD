@@ -168,7 +168,7 @@ CALC
  0.001     0.001     0     T     0
 # PRINT 1
 # ..  pres_pr_intrv,enth_pr_intrv,temp_pr_intrv,satn_pr_intrv,iprsat[I]
-    500     500     500.0     0     0
+    500     500     500.0     500.0     3
 # PRINT 2
 # ..  dens_pr_intrv,iprden[I],vis_pr_intrv,iprvis[I],potential_pr_intrv,iprpot[I]
      500    11     0    0     0    0
@@ -350,7 +350,7 @@ CALC
  0.001     0.001     0     T     0
 # PRINT 1
 # ..  pres_pr_intrv,enth_pr_intrv,temp_pr_intrv,satn_pr_intrv,iprsat[I]
-    500     500     500.0     0     0
+    500     500     500.0     500.0     3
 # PRINT 2
 # ..  dens_pr_intrv,iprden[I],vis_pr_intrv,iprvis[I],potential_pr_intrv,iprpot[I]
      500    11     0    0     0    0

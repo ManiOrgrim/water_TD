@@ -494,10 +494,10 @@ def find_equi_TfromP(P):
     return T, rhog, rhol
     
 
-def boom_rev(rho0_g, Satu0_g, rho0_l, Satu0_l, T0):
+def boom_rev_orig(rho0_g, Satu0_g, rho0_l, Satu0_l, T0):
     Patm = 101.325
     U0 = rho0_g*Satu0_g*EOS_intenergy(rho0_g, T0) + rho0_l*Satu0_l*EOS_intenergy(rho0_l, T0)
-    Entro0 = rho0_g*Satu0_g*EOS_entropy(rho0_g, T0) + rho0_l*Satu0_l*EOS_entropy(rho0_l, T0)
+    Entro0 = rho0_g*Satu0_g *np.minimum(EOS_entropy(rho0_g, T0),1000000000) + rho0_l*Satu0_l*np.minimum(EOS_entropy(rho0_l, T0),10000000)
     #Teq, rhog_eq, rhol_eq  = find_equi_TfromP(Patm)
     Teq = 373.12
     rhog_eq = 0.5973
@@ -516,15 +516,57 @@ def boom_rev(rho0_g, Satu0_g, rho0_l, Satu0_l, T0):
     for i in range(f.shape[0]):
         for j in range (f.shape[1]):
             if (f[i,j]< 0):
-                rhol_eq, Tf = isoS_expansion_solver(T0[i,j], rho0_l[i,j], Patm)
-                #print("iih")
-                #print(rhol_eq.shape, EOS_intenergy(rhol_eq, Tf).shape)
-                U_boom[i,j] = rhol_eq*EOS_intenergy(rhol_eq, Tf) -U0[i,j] 
+                if (i==0):
+                    U_boom[i,j] = 0
+                else:
+                    rhol_eq, Tf = isoS_expansion_solver(T0[i,j], rho0_l[i,j], Patm)
+                    #print("iih")
+                    #print(rhol_eq.shape, EOS_intenergy(rhol_eq, Tf).shape)
+                    U_boom[i,j] = rhol_eq*EOS_intenergy(rhol_eq, Tf) -U0[i,j] 
             elif (f[i,j]>1):
                 rhog_eq, Tf = isoS_expansion_solver(T0[i,j], rho0_g[i,j], Patm)
                 U_boom[i,j] = rhog_eq*EOS_intenergy(rhog_eq, Tf) -U0[i,j]
 
     #print("U_boom", U_boom)
+    return U_boom*1000  #EOS calcuates in kJ
+
+
+def boom_rev(rho0_g, Satu0_g, rho0_l, Satu0_l, T0):
+    Patm = 101.325
+    U0 = rho0_g*Satu0_g*EOS_intenergy(rho0_g, T0) + rho0_l*Satu0_l*EOS_intenergy(rho0_l, T0)
+    Entro0 = rho0_g*Satu0_g *np.minimum(EOS_entropy(rho0_g, T0),1000000000) + rho0_l*Satu0_l*np.minimum(EOS_entropy(rho0_l, T0),10000000)
+    #Teq, rhog_eq, rhol_eq  = find_equi_TfromP(Patm)
+    Teq = 373.12
+    rhog_eq = 0.5973
+    rhol_eq = 958.378
+    Entro_g_atm = rhog_eq*EOS_entropy(rhog_eq, Teq)
+    Entro_l_atm = rhol_eq*EOS_entropy(rhol_eq, Teq)
+    
+    M0 = rho0_g*Satu0_g + rho0_l*Satu0_l
+    #Entro0 già calcolata sopra
+    R0 = M0/Entro0
+    Sgf = (-rhol_eq*Entro_l_atm*R0 +rhol_eq)/((rhog_eq*Entro_g_atm-rhol_eq*Entro_l_atm)*R0 +rhol_eq-rhog_eq)
+        
+
+    # print("In boom rev abbiamo f, Teq, rhog_eq, rhol_eq")
+    # print(f, Teq, rhog_eq, rhol_eq)
+    U_boom = (rhog_eq*Sgf*EOS_intenergy(rhog_eq, Teq)+rhol_eq*(1-Sgf)*EOS_intenergy(rhol_eq, Teq)-U0)
+    for i in range(Sgf.shape[0]):
+        for j in range (Sgf.shape[1]):
+            if (Sgf[i,j]< 0):
+                if (i==0):
+                    U_boom[i,j] = 0
+                else:
+                    rhol_eq, Tf = isoS_expansion_solver(T0[i,j], rho0_l[i,j], Patm)
+                    #print("iih")
+                    #print(rhol_eq.shape, EOS_intenergy(rhol_eq, Tf).shape)
+                    U_boom[i,j] = rhol_eq*EOS_intenergy(rhol_eq, Tf) -U0[i,j] 
+            elif (Sgf[i,j]>1):
+                rhog_eq, Tf = isoS_expansion_solver(T0[i,j], rho0_g[i,j], Patm)
+                U_boom[i,j] = rhog_eq*EOS_intenergy(rhog_eq, Tf) -U0[i,j]
+
+    #print("U_boom", U_boom)
+    U_boom = np.nan_to_num(U_boom )
     return U_boom*1000  #EOS calcuates in kJ
 
 
@@ -609,8 +651,9 @@ def isoS_expansion_solver(T0, rho0, Pout):
     h = 1.0e-4 
 
     xnorm = 10000000
+    oldxnorm = xnorm
     while (xnorm > 1):
-        f[0] = EOS_entropy(x[0], x[1])- S0 
+        f[0] =  EOS_entropy(x[0], x[1])- S0 
         f[1] = EOS_pressure(x[0], x[1]) - Pout
         J[0,0] = (EOS_entropy(x[0]+h, x[1])-EOS_entropy(x[0]-h, x[1]))/(2*h)
         J[0,1] = (EOS_entropy(x[0], x[1]+h)-EOS_entropy(x[0], x[1]-h))/(2*h)
@@ -619,9 +662,15 @@ def isoS_expansion_solver(T0, rho0, Pout):
 
         Jinv = np.linalg.inv(J)
         dx = -Jinv@f 
+        oldxnorm = xnorm
         xnorm = np.linalg.norm(dx)
-        x = x+0.1*dx
-    print(x)
+        #dprint(oldxnorm, xnorm)
+        if (xnorm > 10*oldxnorm):
+            x = x +0.01*dx
+        elif (xnorm > 100*oldxnorm):
+            x = x +0.001*dx
+        else:
+            x = x+0.1*dx
     return x[0], x[1]
 
 
