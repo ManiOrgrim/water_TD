@@ -156,16 +156,28 @@ class DecisionTreeRegressor():
         
         preditions = [self.make_prediction(x, self.root) for x in X]
         return preditions    
-X = data.iloc[:,1:-3].values
-Y = data.iloc[:,-3].values.reshape(-1,1)
-from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=13)
-
-regressor = DecisionTreeRegressor(min_samples_split=3, max_depth=5)
-regressor.fit(X_train, Y_train)
-# regressor.fit(X_train, Y_train)
-regressor.print_tree()
     
+    
+# X = data.iloc[:,1:-3].values
+# Y = data.iloc[:,-3].values.reshape(-1,1)
+# from sklearn.model_selection import train_test_split
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=2000)
+
+# regressor = DecisionTreeRegressor(min_samples_split=2, max_depth=3 )
+# regressor.fit(X_train, Y_train)
+# # regressor.fit(X_train, Y_train)
+# regressor.print_tree()
+
+# score = 0
+# maximo = len(Y_test)
+# predictions = regressor.predict(X_test)
+# for i in range(maximo):
+#     if abs(Y_test[i,0] -predictions[i])<0.25:
+#         score+=1
+# print("final score ", score/maximo)
+    
+    
+
 
     
     

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso, LinearRegression
 from sklearn.metrics import mean_absolute_error as MAE
 from sklearn.metrics import r2_score as R2
 import matplotlib.pyplot as plt
@@ -17,25 +17,34 @@ from sklearn.preprocessing import FunctionTransformer
 
 
 
-data = np.load("tott.npy")
+data = np.load("tnov.npy")
+#data = data[:100, :]
 
 ML_data  = pd.DataFrame(data=data, columns = ["Nsim", "Heat_Flux", "Tbot", "HPperm", "HPporo", "LPperm", "LPporo", "Dz", "Overpressure_perc", "Endtime", "Explo_energy" ])
-ML_data["Thermonum"]   = ((10**4) * ML_data["Heat_Flux"]*np.sqrt(ML_data["HPperm"])/(1.5e5 *(ML_data["Tbot"]-30)))
-ML_data["Thermonum2"]  = ((10**4) * ML_data["Heat_Flux"]*np.sqrt(ML_data["LPperm"])/(1.5e5 *(ML_data["Tbot"]-30)))**(-1)
-ML_data["Thermonum3"]  = ((10**4) * ML_data["Heat_Flux"]*ML_data["Dz"]/(1.5e5 *(ML_data["Tbot"]-30)))
-# ML_data["Thermonum"]   = (ML_data["HPporo"]*(10**4) * ML_data["Heat_Flux"]*np.sqrt(ML_data["HPperm"])/(1.5e5 *(ML_data["Tbot"]-30)))**(-1)
-# ML_data["Thermonum2"]  = (ML_data["HPporo"]*(10**4) * ML_data["Heat_Flux"]*np.sqrt(ML_data["LPperm"])/(1.5e5 *(ML_data["Tbot"]-30)))**(-1)
 
-ML_data["log_HPperm"]  = np.log10(ML_data["HPperm"])
-ML_data["log_LPperm"]  = np.log10(ML_data["LPperm"])
-ML_data["perme_ratio"] = ML_data["HPperm"]/ML_data["LPperm"]
+
+
+# ML_data["Thermonum"]   = ((10**4) * ML_data["Heat_Flux"]*np.sqrt(ML_data["HPperm"])/(1.5e5 *(ML_data["Tbot"]-30)))  # 0
+# ML_data["Thermonum3"]  = ((10**4) * ML_data["Heat_Flux"]*ML_data["Dz"]/(1.5e5 *(ML_data["Tbot"]-30)))              # 1
+
+ML_data["log_HPperm"]  = np.log10(ML_data["HPperm"])                                                              # 2
+ML_data["log_LPperm"]  = np.log10(ML_data["LPperm"])                                            **(-1)                     # 3
+# ML_data["perme_ratio"] = ML_data["HPperm"]/ML_data["LPperm"]                                                        # 4
+# ML_data["permeZ_ratio"] = (ML_data["LPperm"]/ML_data["Dz"]**2)                                  **(-1)              # 5
+
+# ML_data["Heat_Flux"] = ML_data["Heat_Flux"]                                                     **(-1)                    # 6
+# ML_data["Tbot"]  = ML_data["Tbot"]                                                                                  # 7
+# ML_data["HPporo"] = ML_data["HPporo"]                                                                                # 8
+# ML_data["LPporo"] = ML_data["LPporo"]                                                                           # 9
+# ML_data["Dz"]  = ML_data["Dz"]                                                                                      # 10
 
 
 # take from the dataframe the inputs
 
-x_orig = ML_data.loc[:, ["Heat_Flux", "Tbot", "log_HPperm", "HPporo", "log_LPperm", "LPporo", "Dz", "Thermonum", "Thermonum2"]]
+x_orig = ML_data.loc[:, ["Heat_Flux", "Tbot", "log_HPperm", "HPporo", "log_LPperm", "LPporo", "Dz"]]#, "Thermonum", "Thermonum3", "perme_ratio","permeZ_ratio"]]
 x = np.zeros(x_orig.shape)
 x=x_orig
+
 
 
 # logs of permeabilities are actually calculated here
@@ -52,7 +61,7 @@ x=x_orig
 # start working on the energy
 y = ML_data.loc[:, "Explo_energy"]
 
-degree = 4
+degree = 5
 
 
 p = preprocessing.PolynomialFeatures(degree).fit(x)
@@ -63,11 +72,12 @@ scaler = preprocessing.StandardScaler().fit(x)
 x = scaler.transform(x) 
 x = preprocessing.PolynomialFeatures(degree).fit_transform(x)
 
-
+# y = np.array(y)
+# y = (y-y.mean())/y.std() 
 # MODEL 1
 x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2)
 
-model_01 = Lasso(alpha = 0.0).fit(x_train, y_train)
+model_01 =LinearRegression().fit(x_train, y_train)
 
 y_model_train = model_01.predict(x_train)
 y_model_test  = model_01.predict(x_test)
@@ -85,6 +95,7 @@ axmodel_01[0].plot(y_train, y_model_train, 'ro')
 axmodel_01[0].plot(y_test, y_model_test, 'bo')
 axmodel_01[0].plot([0,900000],[0,900000])
 axmodel_01[1].bar(features, abs(model_01.coef_))
+axmodel_01[1].bar(features, abs(model_01.coef_))
 axmodel_01[0].set_title("model_01") 
 
 
@@ -97,15 +108,15 @@ print(features[minidx], "with values", model_01.coef_ [minidx])
 
 
 
-# MODEL 2 - remove feature  
+# # MODEL 2 - remove feature  
 
-for i in range(810):
+for i in range(760):
     if (i> 0):
-       x  = np.delete(x, minidx, axis=1)
-       features.pop(minidx)
+        x  = np.delete(x, minidx, axis=1)
+        features.pop(minidx)
     
     x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2)
-    model_02 = Lasso(alpha = 0.1+0.07*i).fit(x_train, y_train)
+    model_02 = Lasso(alpha = 0.5).fit(x_train, y_train)
     
     
     
@@ -117,24 +128,29 @@ for i in range(810):
     print("MAE test", MAE(y_test, y_model_test))
     print("R2 train", R2(y_train, y_model_train))
     print("R2 test", R2(y_test, y_model_test))
-    if ( R2(y_train, y_model_train)<0.75):
-        fagmodel_02, axmodel_02 = plt.subplots(2)
-        axmodel_02[0].plot(y_train, y_model_train, 'ro')
-        axmodel_02[0].plot(y_test, y_model_test, 'bo')
-        axmodel_02[0].plot([0,900000],[0,900000])
-        axmodel_02[1].bar(features, abs(model_02.coef_))
-        axmodel_02[0].set_title("model_{}".format(i))
-        break
+    # if ( R2(y_train, y_model_train)<0.15):
+    #     fagmodel_02, axmodel_02 = plt.subplots(2)
+    #     axmodel_02[0].plot(y_train, y_model_train, 'ro')
+    #     axmodel_02[0].plot(y_test, y_model_test, 'bo')
+    #     axmodel_02[0].plot([0,900000],[0,900000])
+    #     axmodel_02[1].bar(features, abs(model_02.coef_))
+    #     axmodel_02[0].set_title("model_{}".format(i))
+    #     break
     
 
-    abso = abs(model_02.coef_)
+    abso = model_02.coef_
     minidx = np.argmin(abso)
     
     print("Minimal coefficient is coeff number", minidx )
     print(features[minidx], "with values {:.2e}".format( model_02.coef_ [minidx]))
 
 
-
+# fagmodel_02, axmodel_02 = plt.subplots(2)
+# axmodel_02[0].plot(y_train, y_model_train, 'ro')
+# axmodel_02[0].plot(y_test, y_model_test, 'bo')
+# axmodel_02[0].plot([0,900000],[0,900000])
+# axmodel_02[1].bar(features, abs(model_02.coef_))
+# axmodel_02[0].set_title("model_{}".format(i))
 
 
 

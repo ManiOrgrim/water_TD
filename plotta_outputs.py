@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-os.chdir("mozzd0000")
+os.chdir("tnov0002")
 
 def readPlotScalar(filename, rocks):
     with open(filename, 'r' ) as infile:
@@ -298,15 +298,16 @@ def gifferino ():
         
 
 
-os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/tzer0000")
+simulaz = "tnov0295"
+os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 
-rocks = ReadRock("tzer0000.in", 5)
+rocks = ReadRock(simulaz+".in", 5)
 print("Read rock distribution")
-readPlotScalar("Plot_scalar.tzer0000.out", rocks)
+readPlotScalar("Plot_scalar."+simulaz+".out", rocks)
 print("Plot of scalar quantities done")
-readPlotVector("Plot_vector.tzer0000.out", rocks)
+readPlotVector("Plot_vector."+simulaz+".out", rocks)
 print("Plot of vector quantities done")
-images = gifferino()
+images = gifferino() 
 print("Animated GIFs done")
 
 
