@@ -350,7 +350,7 @@ CALC
  0.001     0.001     0     T     0
 # PRINT 1
 # ..  pres_pr_intrv,enth_pr_intrv,temp_pr_intrv,satn_pr_intrv,iprsat[I]
-    500     500     500.0     500.0     3
+    1     500     500.0     500.0     3
 # PRINT 2
 # ..  dens_pr_intrv,iprden[I],vis_pr_intrv,iprvis[I],potential_pr_intrv,iprpot[I]
      500    11     0    0     0    0
@@ -374,7 +374,7 @@ FREE_FORMAT
 16*{heat:.1f}
 # TIME PERIOD #3  (instantaneous emplacement of magma)
 # .. tchg,delt,nsrce[I],lchgpr[T/F],nparms[I]
-    1000.0     -1     -1     F     0
+    100.0     -1     -1     F     0
 # TIME PERIOD #: End of simulation record
 # ..  tchg
 -1 /

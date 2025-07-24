@@ -45,7 +45,7 @@ dZs    = [ 5, 10, 15, 20]
  
 
 
-simname= "t013"
+simname= "t014"
 runs = []
 
 #0.00000000e+00, 3.40209510e+03, 1.00092495e+03, 4.97315521e-09,
@@ -54,17 +54,17 @@ runs = []
 
 
 
-HPperm = 1e-14
+HPperm = 1e-8
 HPporo = 0.15
 LPperm = 1.0e-19
 LPporo = 5.0e-02#0.01+np.random.rand()*0.09
 Dz =  10
 Tbot = 30
-flux = 1000
+flux = 10000
 
 
 #for irun in range(3000):
-for irun in range(1000):
+for irun in range(100):
     # flux = 3.40209510e+03#np.random.rand()*4000
     # # Tbot = 1.00092495e+03#30+np.random.rand()+970
     # HPperm = 1e-14
@@ -72,7 +72,7 @@ for irun in range(1000):
     # LPperm = 1.0e-19
     # LPporo = 5.0e-02#0.01+np.random.rand()*0.09
     # Dz =  10
-    Tbot +=1
+    Tbot +=10
     # HPporo = 0.1+np.random.rand()*0.15
     # LPperm = 10**(-12-np.random.rand()*8)
     #LPporo = 0.01+np.random.rand()*0.09

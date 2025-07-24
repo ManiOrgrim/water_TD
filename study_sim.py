@@ -12,6 +12,7 @@ data = np.load("t011.npy")
 data2 = np.load("tdie.npy")
 data3 = np.load("t012.npy")
 data4 = np.load("u012.npy")
+data4m = np.load("t014.npy")
 
 
 # median = np.median(np.log(data[:,-1]))
@@ -40,10 +41,10 @@ ax2.plot([0,1000], [1800,1800], color="orange", linestyle="--", label = "Beirut 
 # ax2.plot(data[:,2], data[:,-1]/(4.184*1e9), color=[0.8,0.6, 0])
 # ax1.plot(data2[:,2], data2[:,-1]*1e-6, color=[0.6,0.6, 0.3])
 # ax2.plot(data2[:,2], data2[:,-1]/(4.184*1e9), color=[0.6,0.6, 0.3])
-ax1.plot(data3[:,2], data3[:,-1]*1e-6, color=[1,1, 0.6])
-ax2.plot(data3[:,2], data3[:,-1]/(4.184*1e9), color=[1,1, 0.6])
-ax1.plot(data4[:,2], data4[:,-1]*1e-6, color=[0.1,0.1, 0.7])
-ax2.plot(data4[:,2], data4[:,-1]/(4.184*1e9), color=[0.1,0.1, 0.7])
+# ax1.plot(data3[:,2], data3[:,-1]*1e-6, color=[1,1, 0.6])
+# ax2.plot(data3[:,2], data3[:,-1]/(4.184*1e9), color=[1,1, 0.6])
+ax1.plot(data4m[:,2], data4m[:,-1]*1e-6, color=[0.1,0.1, 0.7])
+ax2.plot(data4m[:,2], data4m[:,-1]/(4.184*1e9), color=[0.1,0.1, 0.7])
 
 
 fag.legend()
