@@ -478,7 +478,7 @@ def boom_eval(probname):
     steamrho *= 1000
 
     S3 = 2180   #kPa
-    Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+    Pthresh = 2*S3*(1-poro**(-1/3))/(3*poro*np.sqrt(poro**(-1/3)-1))
     
     overcome = pressure/Pthresh
     overcome_count = np.sum(overcome[1:,:]>1)/len(np.ravel(overcome[1:,:]))

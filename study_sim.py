@@ -37,6 +37,7 @@ ax2 = ax1.twinx()
 ax2.set_ylabel("Tons of TNT")
 ax2.plot([0,1000], [1800,1800], color="orange", linestyle="--", label = "Beirut 2020 ")
 
+<<<<<<< HEAD
 # ax1.plot(data[:,2], data[:,-1]*1e-6, color=[0.8,0.6, 0])
 # ax2.plot(data[:,2], data[:,-1]/(4.184*1e9), color=[0.8,0.6, 0])
 # ax1.plot(data2[:,2], data2[:,-1]*1e-6, color=[0.6,0.6, 0.3])
@@ -46,6 +47,27 @@ ax2.plot([0,1000], [1800,1800], color="orange", linestyle="--", label = "Beirut 
 ax1.plot(data4m[:,2], data4m[:,-1]*1e-6, color=[0.1,0.1, 0.7])
 ax2.plot(data4m[:,2], data4m[:,-1]/(4.184*1e9), color=[0.1,0.1, 0.7])
 
+=======
+ax1.plot(data[:,2], data[:,-1]*1e-6, color=[0.8,0.3, 0], label="100 mW/m2")
+ax2.plot(data[:,2], data[:,-1]/(4.184*1e9), color=[0.8,0.3, 0])
+ax1.plot(data2[:,2], data2[:,-1]*1e-6, color=[0.4,0.3, 0.4], label="0 mW/m2")
+ax2.plot(data2[:,2], data2[:,-1]/(4.184*1e9), color=[0.4,0.3, 0.4])
+ax1.plot(data3[:,2], data3[:,-1]*1e-6, color=[0.,0.3, 0.8], label="500 mW/m2")
+ax2.plot(data3[:,2], data3[:,-1]/(4.184*1e9), color=[0.,0.3, 0.8])
+ax1.set_xlabel(r"T$_{\text{Bot}}$ [°C]")
+# ax1.plot(data4[:,2], data4[:,-1]*1e-6, color=[0.1,0.1, 0.7])
+# ax2.plot(data4[:,2], data4[:,-1]/(4.184*1e9), color=[0.1,0.1, 0.7])
+>>>>>>> 09d79a2e9efc56ef5b4b96595dcf94294bc487d9
 
 fag.legend()
+
+
+feg, ex = plt.subplots(dpi=300)
+ex.set_title("Overpressure ratio")
+ex.plot(data2[:,2], data2[:,-3], color=[0.4,0.3, 0.4], label="0 mW/m2")
+ex.plot(data[:,2], data[:,-3], color=[0.8,0.3, 0], label="100 mW/m2")
+ex.plot(data3[:,2], data3[:,-3], color=[0.,0.3, 0.8], label="500 mW/m2")
+ex.set_xlabel(r"T$_{\text{Bot}}$ [°C]")
+
+feg.legend()
 
