@@ -347,25 +347,25 @@ CALC
 # Transient data
 # TIME PERIOD #1
 # .. tchg,delt,nsrce[I],lchgpr[T/F],nparms[I]
- 0.001     0.001     0     T     0
+ 1.00     0.001     0     T     0
 # PRINT 1
 # ..  pres_pr_intrv,enth_pr_intrv,temp_pr_intrv,satn_pr_intrv,iprsat[I]
-    1     500     500.0     500.0     3
+    1     1     1.0     1.0     3
 # PRINT 2
 # ..  dens_pr_intrv,iprden[I],vis_pr_intrv,iprvis[I],potential_pr_intrv,iprpot[I]
-     500    11     0    0     0    0
+     1    11     0    0     0    0
 # PRINT 3
 # .. velocity_pr_intrv,iprvel[I],bcflow_pr_intrv,iprbcflow[I],source_pr_intrv,iprsource[I]
-     0.0    0     0    0     0    0
+     1.0    0     0    0     0    0
 # PRINT 4
 # .. pm_properties_pr_intrv,iprmprop[I],poros_pr_intrv,permeability_pr_intrv
-     0    0     1000    0
+     1    1     1000    0
 # PRINT 5
 # .. balance_pr_intrv,dimno_pr_intrv,iprdimno[I],residuals_pr_intrv,dump_pr_intrv
-     0     0     0     0     10000
+     1     1     0     0     10000
 # PRINT 6
 # .. plotscalar_pr_intrv,plotvector_pr_intrv,plotfile_type[I],time_series_pr_intrv
-     100   100    5     0
+     1   1    5     0
 # TIME PERIOD #2  (instantaneous emplacement of magma)
 # .. tchg,delt,nsrce[I],lchgpr[T/F],nparms[I]
     2.0     -1     -1     F     1

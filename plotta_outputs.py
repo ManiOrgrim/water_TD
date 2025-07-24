@@ -130,14 +130,14 @@ def readPlotVector(filename, rocks):
 
         
 def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
-    xfactor, xunit= convert("cm", "m")
+    xfactor, xunit= convert("m", "m")
     x = x*xfactor
-    zfactor, zunit= convert("cm", "m")
+    zfactor, zunit= convert("m", "m")
     z = z*zfactor
     fieldname, fieldunit = lines[0].split(sep="(")
     fieldname = fieldname.lstrip()
     fieldunit = fieldunit.split(sep=")")[0]
-    factor, fieldunit =convert(fieldunit, fieldunit)
+    factor, fieldunit =convert(fieldunit, "MPa")
     field = []
     riga = []
     for line in lines[1:]:
@@ -148,6 +148,7 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
 
 
     field = np.array(field)
+    field = field*factor
 
     xx, zz = np.meshgrid(x,z)
     fig, ax = plt.subplots(dpi=300)
@@ -160,7 +161,8 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
     elif ("Enthalpy" in fieldname):
         levels = np.linspace(0,5000, 100)
     elif ("Pressure" in fieldname):
-        levels = np.linspace(0,3e8,100)
+        levels = np.linspace(0,3e1,100)
+        
     elif ("Temper" in fieldname):
         levels = np.linspace(0, 1000, 100)
     
@@ -172,12 +174,34 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
     ax.set_title(fieldname + " ["+fieldunit +"] at t= "+str(time) +' '+timeunit)
     fig.savefig(code+"_"+fieldname[:8]+'_'+"{:03d}".format(timestep)+".png")
     plt.close(fig)
+    if ("Pressure" in fieldname):
+        S3 = 2.180   #MPa
+        poro = 0.15
+        Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+        print(Pthresh)
+        fig, ax = plt.subplots(dpi=300)
+        scalefac = 1
+        ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+        levels = np.linspace(0,2,100)
+        mappo = ax.contourf(xx, zz, field/Pthresh, levels=levels, extend="both")
+        ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
+        ax.set_xlabel("x ["+xunit+"]")
+        ax.set_ylabel("z ["+zunit+"]")
+        fig.colorbar(mappo)
+        ax.set_title("Overpressure ratio" + " at t= "+str(time) +' '+timeunit)
+        fig.savefig(code+"_"+"overpre"+'_'+"{:03d}".format(timestep)+".png")
+        plt.close(fig)
+        
+    
+        
+        
+        
 
 
 def plotVector (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
-    xfactor, xunit= convert("cm", "m")
+    xfactor, xunit= convert("m", "m")
     x = x*xfactor
-    zfactor, zunit= convert("cm", "m")
+    zfactor, zunit= convert("m", "m")
     z = z*zfactor
     reachline= 1
     fieldname, fieldunit = lines[0].split(sep="(")
@@ -240,7 +264,10 @@ def plotVector (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
 def convert(fieldunit, outunit):
     if ((fieldunit == "cm") and (outunit=="m")):
         factor = 0.01
-    else:
+    if((fieldunit=="dyne/cm^2") and (outunit=="MPa")):
+        factor=1e-7
+        print("culooooo")
+    else: 
         factor = 1
         outunit = fieldunit
         
@@ -299,8 +326,8 @@ def gifferino ():
 
 
 simulaz = "t0140060"
-# os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPyWS/water_TD/t013_fold/"+simulaz)
-os.chdir("t014_fold/"+simulaz)
+os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
+# os.chdir("t014_fold/"+simulaz)
 
 rocks = ReadRock(simulaz+".in", 5)
 print("Read rock distribution")
