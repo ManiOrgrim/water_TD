@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-os.chdir("tnov0002")
+
 
 def readPlotScalar(filename, rocks):
     with open(filename, 'r' ) as infile:
@@ -298,8 +298,9 @@ def gifferino ():
         
 
 
-simulaz = "tnov0295"
-os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
+simulaz = "t0140060"
+# os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPyWS/water_TD/t013_fold/"+simulaz)
+os.chdir("t014_fold/"+simulaz)
 
 rocks = ReadRock(simulaz+".in", 5)
 print("Read rock distribution")
