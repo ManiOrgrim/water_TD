@@ -178,7 +178,6 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
         S3 = 2.180   #MPa
         poro = 0.15
         Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
-        print(Pthresh)
         fig, ax = plt.subplots(dpi=300)
         scalefac = 1
         ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
@@ -266,7 +265,6 @@ def convert(fieldunit, outunit):
         factor = 0.01
     if((fieldunit=="dyne/cm^2") and (outunit=="MPa")):
         factor=1e-7
-        print("culooooo")
     else: 
         factor = 1
         outunit = fieldunit
