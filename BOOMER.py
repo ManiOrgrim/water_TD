@@ -486,8 +486,11 @@ def boom_eval(probname):
 
 
     #boom_total = eos.boom_rev(steamrho, Sg, waterrho, Sl, temperature)
+    print("Calculating monophase explosivity...")
     boom_total_1p = eos.boom_irr_monophase(steamrho, waterrho, Sg, Sl, temperature)
-    boom_total_2p = eos.boom_irr_biphase  (steamrho, waterrho, Sg, Sl, temperature)
+    print("Calculating biphase explosivity")
+    boom_total_2p = eos.boom_irr_biphase  (steamrho, waterrho, Sg, Sl, temperature, pressure)
+    print("Calculating final explosivity...")
     #total weight is the average between monophase and biphase, 
     #but if biphase  is nan then we set to 0
     boom_2pweight = 0.5*(1-(np.isnan(boom_total_2p)))  #weight of 2 phases is 0.5 if non nan, 0 if nan

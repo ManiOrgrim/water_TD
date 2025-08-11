@@ -6,6 +6,7 @@ Created on Thu Jul  3 07:54:20 2025
 """
 
 import numpy as np
+import scipy.optimize as opt
 
 Tc = 647.096
 rho_c = 322.0          
@@ -574,33 +575,22 @@ def boom_irr_monophase(rho0g, rho0l, S0_g, S0_l, T0):
     v0   = 1/(S0_l*rho0l + S0_g*rho0g)
 
     U0 = S0_g*EOS_intenergy(rho0g, T0) + S0_l*EOS_intenergy(rho0l, T0)
-    Patm = 101.325
-    epsi = 1.0e-4
-    deltaxnorm = 10000000.0
-    rho = 1.0
-    T   = 500.0 #initial guess
-    f = np.zeros(2)
-    J = np.zeros((2,2))
-    Jinv = np.zeros((2,2))
-    while(deltaxnorm > 1.0e-4):
-      f[0] = boom_f1(rho, T, U0, v0)
-      f[1] = EOS_pressure(rho,T)-Patm
-      J[0,0] = 0.5*(boom_f1(rho+epsi,T,U0,v0)-boom_f1(rho-epsi,T,U0,v0))/epsi
-      J[1,0] = 0.5*(boom_f1(rho,T+epsi,U0,v0)-boom_f1(rho,T-epsi,U0,v0))/epsi
-      J[0,1] = 0.5*(EOS_pressure(rho+epsi,T)-EOS_pressure(rho-epsi,T))/epsi
-      J[1,1] = 0.5*(EOS_pressure(rho,T+epsi)-EOS_pressure(rho,T-epsi))/epsi
-      detJ = J[0,0]*J[1,1]-J[1,0]*J[0,1]
-      Jinv[0,0] =  J[1,1]/detJ
-      Jinv[1,0] = -J[0,1]/detJ
-      Jinv[0,1] = -J[1,0]/detJ
-      Jinv[1,1] =  J[0,0]/detJ
-      dx    = np.matmul(Jinv,f)
-      rho = rho+0.01*dx[0]
-      T = T+0.01*dx[1]
-      deltaxnorm = np.linalg.norm(dx)
-    released_energy = EOS_intenergy(rho,T)-U0
+    
+    outrho = np.empty(rho0g.shape)
+    outT = np.empty(rho0g.shape)
+    for i in range(outrho.shape[0]):
+        for j in range (outrho.shape[1]):
+            rho = 1.0
+            T   = 500.0 #initial guess
+            rhoT0 = [1.0, 500]
+            outrho[i,j], outT[i,j] = opt.fsolve(boomF, rhoT0, args=(U0[i,j], v0[i,j])) 
+
+    released_energy = EOS_intenergy(outrho,outT)-U0
     return released_energy
 
+
+def boomF(rhoT, U0, v0):
+    return (boom_f1(rhoT[0], rhoT[1],U0, v0), EOS_pressure(rhoT[0],rhoT[1])-101.325)
 
 def boom_f1(rho, T, U0, v0):
     patm = 101.325 
@@ -608,21 +598,16 @@ def boom_f1(rho, T, U0, v0):
     f1 = EOS_intenergy(rho,T)-U0+patm*(v-v0)
     return f1
 
-def boom_irr_biphase(rho0g, rho0l, S0_g, S0_l, T0):
+def boom_irr_biphase(rho0g, rho0l, S0_g, S0_l, T0, P0):
    Patm = 101.325 
    
    v0   = 1/(S0_l*rho0l + S0_g*rho0g)
    U0 = S0_g*EOS_intenergy(rho0g, T0) + S0_l*EOS_intenergy(rho0l, T0)
 
-   if (S0_g<0 or S0_g > 1):
-       P0 = EOS_pressure(rho0l,T0)
-   else:
-       P0 = EOS_pressure(rho0g,T0)
-
-   U0 = EOS_intenergy(rho0,T0)
+   U0 = S0_g*EOS_intenergy(rho0g,T0) + S0_l*EOS_intenergy(rho0l,T0)
    rhog_final = 0.5973
    rhol_final = 958.378
-   T_final    = 373.12
+   Tfinal    = 373.12
 
    vg_final = 1.0/rhog_final
    vl_final = 1.0/rhol_final
@@ -631,10 +616,10 @@ def boom_irr_biphase(rho0g, rho0l, S0_g, S0_l, T0):
    #f = liquid mass percentage
    #eqn from thiery & mercury 2009
    f = (Patm*( v0-vg_final)-Ug_final+U0)/(Ul_final-Ug_final+Patm*(vl_final-vg_final))
-   if ((f<0.0) or (f>1.0)):
-     released_energy = np.nan
-   else: 
-     released_energy = f*Ul_final +(1.0-f)*Ug_final-U0
+   released_energy = np.empty(f.shape)      
+   mask = (f>=0) & (f<=1)
+   released_energy[~mask] = np.nan
+   released_energy[mask]  = f[mask]*Ul_final +(1.0-f[mask])*Ug_final-U0[mask]
    return released_energy
 
 
