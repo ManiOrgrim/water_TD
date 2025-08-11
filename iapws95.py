@@ -570,9 +570,10 @@ def boom_rev(rho0_g, Satu0_g, rho0_l, Satu0_l, T0):
     return U_boom*1000  #EOS calcuates in kJ
 
 
-def boom_irr_monophase(rho0, T0):
-    v0= 1/rho0
-    U0 = EOS_intenergy(rho0, T0)
+def boom_irr_monophase(rho0g, rho0l, S0_g, S0_l, T0):
+    v0   = 1/(S0_l*rho0l + S0_g*rho0g)
+
+    U0 = S0_g*EOS_intenergy(rho0g, T0) + S0_l*EOS_intenergy(rho0l, T0)
     Patm = 101.325
     epsi = 1.0e-4
     deltaxnorm = 10000000.0
@@ -607,14 +608,22 @@ def boom_f1(rho, T, U0, v0):
     f1 = EOS_intenergy(rho,T)-U0+patm*(v-v0)
     return f1
 
-def boom_irr_biphase(rho0,T0):
+def boom_irr_biphase(rho0g, rho0l, S0_g, S0_l, T0):
    Patm = 101.325 
-   v0 = 1.0/rho0
+   
+   v0   = 1/(S0_l*rho0l + S0_g*rho0g)
+   U0 = S0_g*EOS_intenergy(rho0g, T0) + S0_l*EOS_intenergy(rho0l, T0)
 
-   P0 = EOS_pressure(rho0,T0)
+   if (S0_g<0 or S0_g > 1):
+       P0 = EOS_pressure(rho0l,T0)
+   else:
+       P0 = EOS_pressure(rho0g,T0)
+
    U0 = EOS_intenergy(rho0,T0)
+   rhog_final = 0.5973
+   rhol_final = 958.378
+   T_final    = 373.12
 
-   find_equi_TfromP(Patm)
    vg_final = 1.0/rhog_final
    vl_final = 1.0/rhol_final
    Ug_final = EOS_intenergy(rhog_final, Tfinal)
@@ -623,8 +632,7 @@ def boom_irr_biphase(rho0,T0):
    #eqn from thiery & mercury 2009
    f = (Patm*( v0-vg_final)-Ug_final+U0)/(Ul_final-Ug_final+Patm*(vl_final-vg_final))
    if ((f<0.0) or (f>1.0)):
-     released_energy = 0.0
-     released_energy = released_energy/released_energy
+     released_energy = np.nan
    else: 
      released_energy = f*Ul_final +(1.0-f)*Ug_final-U0
    return released_energy
