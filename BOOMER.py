@@ -485,14 +485,15 @@ def boom_eval(probname):
 
 
 
-    #boom_HT = eos.boom_rev(waterrho, temperature)
-    #print(rho_el[0,0], temperature[0,0])
-    ##boom_liq = eos.boom_rev(rho_el, temperature)
-    #boom_liq[boom_liq<0]=0
-    #boom_gas = eos.boom_rev(rho_eg, temperature)
-    #boom_gas[np.isnan(boom_gas)]=0
-    #boom_gas[boom_gas<0]=0
-    boom_total = eos.boom_rev(steamrho, Sg, waterrho, Sl, temperature)
+    #boom_total = eos.boom_rev(steamrho, Sg, waterrho, Sl, temperature)
+    boom_total_1p = eos.boom_irr_monophase(steamrho, waterrho, Sg, Sl, temperature)
+    boom_total_2p = eos.boom_irr_biphase  (steamrho, waterrho, Sg, Sl, temperature)
+    #total weight is the average between monophase and biphase, 
+    #but if biphase  is nan then we set to 0
+    boom_2pweight = 0.5*(1-(np.isnan(boom_total_2p)))  #weight of 2 phases is 0.5 if non nan, 0 if nan
+    boom_1pweight = 1-boom_2pweight
+    #do average
+    boom_total = boom_2pweight*np.nan_to_num(boom_total_2p) +  boom_total_1p*boom_1pweight
     integrated_explo = integrate_explo(x, z, boom_total)
     for i in range(len(boom_total[0,:])):
         boom_total[0,i] = 0
