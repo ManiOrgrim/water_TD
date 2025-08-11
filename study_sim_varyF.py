@@ -11,7 +11,7 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import matplotlib
 
 
-run ="D110\A"
+run ="D200A"
 data = np.load(run+".npy")
 
 # fag, ax1 = plt.subplots(dpi=300)

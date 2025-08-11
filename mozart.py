@@ -53,11 +53,11 @@ runs = []
 
 
 
-simnames = ["D110A","D125A", "D150A", "D175A", "D200A", "D225A", "C250A"]
+simnames = ["D110B","D125B", "D150B", "D175B", "D200B", "D225B", "C250B"]
 Tbots    = [110, 125, 150, 175, 200, 225, 250]
 
-HPperm = 2e-8
-HPporo = 0.341
+HPperm = 2e-12
+HPporo = 0.154
 LPperm = 1.0e-28
 LPporo = 1.0e-02#0.01+np.random.rand()*0.09
 Dz =  10
