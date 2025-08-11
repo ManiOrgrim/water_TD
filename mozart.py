@@ -45,7 +45,6 @@ dZs    = [ 5, 10, 15, 20]
  
 
 
-simname= "A250A_"
 runs = []
 
 #0.00000000e+00, 3.40209510e+03, 1.00092495e+03, 4.97315521e-09,
@@ -54,37 +53,28 @@ runs = []
 
 
 
+simnames = ["D110A","D125A", "D150A", "D175A", "D200A", "D225A", "C250A"]
+Tbots    = [110, 125, 150, 175, 200, 225, 250]
+
 HPperm = 2e-8
 HPporo = 0.341
-LPperm = 1.0e-19
-LPporo = 5.0e-02#0.01+np.random.rand()*0.09
+LPperm = 1.0e-28
+LPporo = 1.0e-02#0.01+np.random.rand()*0.09
 Dz =  10
-Tbot = 250
-flux = 0 #`tipycal ranges around 20000
 
-
-#for irun in range(3000):
-for irun in range(41):
-    # flux = 3.40209510e+03#np.random.rand()*4000
-    # # Tbot = 1.00092495e+03#30+np.random.rand()+970
-    # HPperm = 1e-14
-    # HPporo = 0.15
-    # LPperm = 1.0e-19
-    # LPporo = 5.0e-02#0.01+np.random.rand()*0.09
-    # Dz =  10
-    flux = irun*1000
-    # HPporo = 0.1+np.random.rand()*0.15
-    # LPperm = 10**(-12-np.random.rand()*8)
-    #LPporo = 0.01+np.random.rand()*0.09
-    # Dz =  1+np.random.rand()*29
-
-    
-    OCmean, endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,Dz)
-    runs.append(np.array([irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,Dz, OCmean, endtime, explo]))
-    os.chdir("..")
+for jcond in range (len(simnames)):
+    flux = 0 #`tipycal ranges around 20000
+    runs = []
+    simname = simnames[jcond]
+    Tbot = Tbots[jcond]
+    for irun in range(41):
+        flux = irun*10000
+        OCmean, endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,Dz)
+        runs.append(np.array([irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,Dz, OCmean, endtime, explo]))
+        os.chdir("..")
   
-print(runs)
-runs = np.array(runs)
-np.save(simname+".npy", runs)
+    print(runs)
+    runs = np.array(runs)
+    np.save(simname+".npy", runs)
 
 #singlerun("mozzd", irun, flux,Tbots,1e-10,0.1,1e-15,0.02,2)

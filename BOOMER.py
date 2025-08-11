@@ -550,7 +550,7 @@ def read_sim_end(probname):
             break
         elif ("Simulation time" ) in line:
             wrds = line.split()
-            endtime = float(wrds[6])
+            endtime = float(wrds[-2])
             break
     return endtime
 

@@ -164,7 +164,7 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
         levels = np.linspace(0,3e1,100)
         
     elif ("Temper" in fieldname):
-        levels = np.linspace(0, 1000, 100)
+        levels = np.linspace(30, 300, 100)
     
     mappo = ax.contourf(xx, zz, field, levels=levels, extend="both")
     ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
@@ -323,7 +323,7 @@ def gifferino ():
         
 
 
-simulaz = "t0140060"
+simulaz = "C030A0001"
 os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 # os.chdir("t014_fold/"+simulaz)
 
