@@ -478,7 +478,7 @@ def boom_eval(probname):
     steamrho *= 1000
 
     S3 = 2180   #kPa
-    Pthresh = 2*S3*(1-poro**(-1/3))/(3*poro*np.sqrt(poro**(-1/3)-1))
+    Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
     
     overcome = pressure/Pthresh
     overcome_count = np.sum(overcome[1:,:]>1)/len(np.ravel(overcome[1:,:]))
@@ -493,22 +493,22 @@ def boom_eval(probname):
     print("Calculating final explosivity...")
     #total weight is the average between monophase and biphase, 
     #but if biphase  is nan then we set to 0
-    boom_2pweight = 0.5*(1-(np.isnan(boom_total_2p)))  #weight of 2 phases is 0.5 if non nan, 0 if nan
-    boom_1pweight = 1-boom_2pweight
+    boom_2pweight = 1-(np.isnan(boom_total_2p))  # wheight is 1 if not nan
+    boom_1pweight = 1-(np.isnan(boom_total_1p))  #
     #do average
-    boom_total = boom_2pweight*np.nan_to_num(boom_total_2p) +  boom_total_1p*boom_1pweight
+    boom_total = (boom_2pweight*np.nan_to_num(boom_total_2p) +  boom_1pweight*np.nan_to_num(boom_total_1p))/(boom_2pweight+boom_1pweight)
     integrated_explo = integrate_explo(x, z, boom_total)
     for i in range(len(boom_total[0,:])):
         boom_total[0,i] = 0
         
-    rock_potential_energy = integrate_rock_weight(x,z,rockrho)
+    # rock_potential_energy = integrate_rock_weight(x,z,rockrho)
     # print("qui D abbiamo x e z:", len(x), len(z))
     # print("Explosive energy:", integrated_explo)
     # print("Rock potential energy:", rock_potential_energy)
     #print("integrated explo",integrated_explo)
     #print("rock_potential_energy", rock_potential_energy)
 
-    return  overcome_count, endtime, integrated_explo+ rock_potential_energy
+    return overcome_count, endtime, integrated_explo
 
 
 def integrate_rock_weight(x,z,rockdensi):
