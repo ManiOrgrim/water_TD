@@ -480,8 +480,15 @@ def boom_eval(probname):
     S3 = 2180   #kPa
     Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
     
-    overcome = pressure/Pthresh
-    overcome_count = np.sum(overcome[1:,:]>1)/len(np.ravel(overcome[1:,:]))
+    overfragm = pressure/Pthresh
+    overfragm_count = np.sum(overfragm[1:,:]>1)/len(np.ravel(overfragm[1:,:]))
+    
+    litho = np.zeros(pressure.shape)
+    for k, zk in enumerate(z):
+        litho[k,:] = lithostatic_pressure(rockrho, zk)
+    overlitho = pressure/(litho*1e-3)
+    overlitho_count = np.sum(overlitho[1:,:]>1)/len(np.ravel(overlitho[1:,:]))
+    
 
 
 
@@ -508,11 +515,14 @@ def boom_eval(probname):
     #print("integrated explo",integrated_explo)
     #print("rock_potential_energy", rock_potential_energy)
 
-    return overcome_count, endtime, integrated_explo
+    return overfragm_count, overlitho_count, endtime, integrated_explo
 
 
 def integrate_rock_weight(x,z,rockdensi):
     return (x[-1]-x[0])*(z[-1])*rockdensi*9.81*1000
+
+def lithostatic_pressure(rho_rock,z):
+    return rho_rock*1000*9.81*z
     
 def integrate_explo(x, z, boom_total):
     nx = len(x)

@@ -17,9 +17,9 @@ def singlerun(name, number, flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, 
     # os.system('echo "{}" >> comandi'.format(runname+'.out'))
     # os.system('cat "comandi" | ../ht.exe')
     print("Calculating explosivity..., run number ", name )
-    overcome, runtime, explosivity = boom_eval(runname)
+    overfragm, overlitho,  runtime, explosivity = boom_eval(runname)
     #print(explosivity)
-    return overcome, runtime, -explosivity[0]
+    return overfragm, overlitho, runtime, -explosivity[0]
 
     
 
@@ -119,8 +119,8 @@ for jcond in range (900):
     runs = []
     simname = "JC{:03d}_".format(jcond)
     for irun in range(1):
-        OCmean, endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
-        runs.append(np.array([irun, flux,Tbot,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, OCmean, endtime, explo]))
+        overfragm, overlitho,  endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
+        runs.append(np.array([irun, flux,Tbot,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, overlitho, overfragm, endtime, explo]))
         os.chdir("..")
   
     print(runs)
