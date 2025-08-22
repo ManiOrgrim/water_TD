@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 
-def readPlotScalar(filename, rocks):
+def readPlotScalar(filename, rocks, poro):
     with open(filename, 'r' ) as infile:
         lines = infile.readlines()
 
@@ -65,7 +65,7 @@ def readPlotScalar(filename, rocks):
                  timestep +=1
                  continue
               else:
-                plotField(lines[reachline:reachline+int(1+Nx/12)*(Nz)+1], x, z, Nx, Nz,time,time_unit,  timestep, code, rocks)
+                plotField(lines[reachline:reachline+int(1+Nx/12)*(Nz)+1], x, z, Nx, Nz,time,time_unit,  timestep, code, rocks, poro)
                 reachline +=int(1+Nx/12)*Nz+1 
             except (IndexError):
                 break
@@ -129,11 +129,12 @@ def readPlotVector(filename, rocks):
                 break
 
         
-def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
+def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, poro):
     xfactor, xunit= convert("m", "m")
     x = x*xfactor
     zfactor, zunit= convert("m", "m")
     z = z*zfactor
+    z = z[::-1]
     fieldname, fieldunit = lines[0].split(sep="(")
     fieldname = fieldname.lstrip()
     fieldunit = fieldunit.split(sep=")")[0]
@@ -153,18 +154,18 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
     xx, zz = np.meshgrid(x,z)
     fig, ax = plt.subplots(dpi=300)
     scalefac = 1
-    ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+    #◘ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
     # fig.set_figheight(scalefac*(max(z)-min(z)))
     # fig.set_figwidth(scalefac*(max(x)-min(x)))
     if (("Fraction" in fieldname) or ("Saturation" in fieldname)):
         levels = np.linspace(0,1, 100)
     elif ("Enthalpy" in fieldname):
-        levels = np.linspace(0,5000, 100)
+        levels = np.linspace(0,1000, 100)
     elif ("Pressure" in fieldname):
-        levels = np.linspace(0,3e1,100)
+        levels = np.linspace(0,1.e1,100)
         
     elif ("Temper" in fieldname):
-        levels = np.linspace(30, 300, 100)
+        levels = np.linspace(30, 200, 100)
     
     mappo = ax.contourf(xx, zz, field, levels=levels, extend="both")
     ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
@@ -172,20 +173,22 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
     ax.set_ylabel("z ["+zunit+"]")
     fig.colorbar(mappo)
     ax.set_title(fieldname + " ["+fieldunit +"] at t= "+str(time) +' '+timeunit)
+    ax.set_ylim(zz.max(), zz.min())
     fig.savefig(code+"_"+fieldname[:8]+'_'+"{:03d}".format(timestep)+".png")
     plt.close(fig)
     if ("Pressure" in fieldname):
         S3 = 2.180   #MPa
-        poro = 0.15
         Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+        
         fig, ax = plt.subplots(dpi=300)
         scalefac = 1
-        ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
-        levels = np.linspace(0,2,100)
-        mappo = ax.contourf(xx, zz, field/Pthresh, levels=levels, extend="both")
+        # ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+        levels = np.linspace(0,1,100)
+        mappo = ax.contourf(xx, zz, field/Pthresh[::-1,:], levels=np.linspace(0,1,5), extend="max")
         ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
         ax.set_xlabel("x ["+xunit+"]")
         ax.set_ylabel("z ["+zunit+"]")
+        ax.set_ylim(zz.max(), zz.min())
         fig.colorbar(mappo)
         ax.set_title("Overpressure ratio" + " at t= "+str(time) +' '+timeunit)
         fig.savefig(code+"_"+"overpre"+'_'+"{:03d}".format(timestep)+".png")
@@ -232,18 +235,18 @@ def plotVector (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks):
     xx, zz = np.meshgrid(x,z)
     fig, ax = plt.subplots(dpi=300)
     scalefac = 1
-    ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+    # ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
     # fig.set_figheight(scalefac*(max(z)-min(z)))
     # fig.set_figwidth(scalefac*(max(x)-min(x)))
     scale = 1
-    if ("Water Mass" in fieldname):
-        scale = 1e-4
-    elif ("Water Velocity" in fieldname):
-        scale = 0.00003
-    elif ("Steam Mass" in fieldname):
-        scale = 0.000000001
-    elif ("Steam Velocity" in fieldname):
-        scale = 0.00000000001
+    # if ("Water Mass" in fieldname):
+    #     scale = 1e-4
+    # elif ("Water Velocity" in fieldname):
+    #     scale = 0.00003
+    # elif ("Steam Mass" in fieldname):
+    #     scale = 0.000000001
+    # elif ("Steam Velocity" in fieldname):
+    #     scale = 0.00000000001
     quivero = ax.quiver(xx, zz, fieldx, fieldz, angles = "xy", scale = scale, pivot = "mid")
     ax.quiverkey(quivero, 0.8, 0.9,0.001*scale, r'{} \frac{m}{s}$', labelpos = 'E', coordinates="figure")
     ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99,3.99], linewidths=1)
@@ -299,6 +302,31 @@ def ReadRock(infil, Nz):
         return np.flip(np.array(grida), axis=0)
                         
                 
+
+def read_porosity(filename):
+    porosity_data = []
+    inside_block = False
+    
+    with open(filename, "r") as f:
+        for line in f:
+            if "Row" in line:
+                inside_block = True
+                continue
+            if inside_block:
+                if "Row" in line:
+                    continue
+                if line.strip() == "":
+                    # stop after the first block ends
+                    break
+                # collect numbers
+                numbers = [float(x) for x in line.split()]
+                porosity_data.extend(numbers)
+    
+    # Infer grid dimensions
+    n_rows = int(len(porosity_data) / 16)   # since there are 16 columns (from coords seen earlier)
+    porosity_array = np.array(porosity_data).reshape(n_rows, 16)
+    return porosity_array
+
                 
         
         
@@ -316,22 +344,24 @@ def gifferino ():
                 images.append([])
                 images[-1].append(fname)
     for serie in images:
-        with imageio.get_writer("{}.gif".format(serie[0][14:23]), duration=0.9, mode="I") as writer:
+        with imageio.get_writer("{}.gif".format(serie[0][14:23]), duration=0.6, mode="I") as writer:
             for filename in serie:
                 imago = imageio.imread(filename)
                 writer.append_data(imago, )
         
 
 
-simulaz = "C030A0001"
+simulaz = "JC008_00"
 os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 # os.chdir("t014_fold/"+simulaz)
 
 rocks = ReadRock(simulaz+".in", 5)
 print("Read rock distribution")
-readPlotScalar("Plot_scalar."+simulaz+".out", rocks)
+
+poro=read_porosity("Out_porosity."+simulaz+".out")
+readPlotScalar("Plot_scalar."+simulaz+".out", rocks, poro)
 print("Plot of scalar quantities done")
-readPlotVector("Plot_vector."+simulaz+".out", rocks)
+# readPlotVector("Plot_vector."+simulaz+".out", rocks)
 print("Plot of vector quantities done")
 images = gifferino() 
 print("Animated GIFs done")
