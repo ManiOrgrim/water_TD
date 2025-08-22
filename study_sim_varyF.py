@@ -11,7 +11,7 @@ from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 import matplotlib
 
 
-run ="D200A"
+run ="F010_100"
 data = np.load(run+".npy")
 
 # fag, ax1 = plt.subplots(dpi=300)
@@ -37,7 +37,7 @@ data = np.load(run+".npy")
 # fig, ix = plt.subplots(dpi=300)
 # ix.set_title("Sim time")
 # ix.plot(data[1:,1], data[1:,-2]/(24*3600), color=[0.,0.3, 0.8], label="500 mW/m2")
-# ix.set_ylabel("Time [d]")
+# ix.set_ylabel("Time [d]") 
 # # ox.set_yscale("log")
 # fig.legend()
 
