@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 
-def readPlotScalar(filename, rocks, poro):
+def readPlotScalar(filename, rocks, rockrho, poro):
     with open(filename, 'r' ) as infile:
         lines = infile.readlines()
 
@@ -65,7 +65,7 @@ def readPlotScalar(filename, rocks, poro):
                  timestep +=1
                  continue
               else:
-                plotField(lines[reachline:reachline+int(1+Nx/12)*(Nz)+1], x, z, Nx, Nz,time,time_unit,  timestep, code, rocks, poro)
+                plotField(lines[reachline:reachline+int(1+Nx/12)*(Nz)+1], x, z, Nx, Nz,time,time_unit,  timestep, code, rocks, rockrho, poro)
                 reachline +=int(1+Nx/12)*Nz+1 
             except (IndexError):
                 break
@@ -129,12 +129,13 @@ def readPlotVector(filename, rocks):
                 break
 
         
-def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, poro):
+def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, rockrho, poro):
     xfactor, xunit= convert("m", "m")
     x = x*xfactor
     zfactor, zunit= convert("m", "m")
     z = z*zfactor
     z = z[::-1]
+    zorig = z[::-1]
     fieldname, fieldunit = lines[0].split(sep="(")
     fieldname = fieldname.lstrip()
     fieldunit = fieldunit.split(sep=")")[0]
@@ -179,6 +180,9 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, poro)
     if ("Pressure" in fieldname):
         S3 = 2.180   #MPa
         Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+        Plith   = np.empty(field.shape)
+        for k, zk in enumerate(z):
+            Plith[k,:] = lithostatic_pressure(rockrho, zk)
         
         fig, ax = plt.subplots(dpi=300)
         scalefac = 1
@@ -190,9 +194,27 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, poro)
         ax.set_ylabel("z ["+zunit+"]")
         ax.set_ylim(zz.max(), zz.min())
         fig.colorbar(mappo)
-        ax.set_title("Overpressure ratio" + " at t= "+str(time) +' '+timeunit)
-        fig.savefig(code+"_"+"overpre"+'_'+"{:03d}".format(timestep)+".png")
+        ax.set_title("Fragmentation overpressure ratio" + " at t= "+str(time) +' '+timeunit)
+        fig.savefig(code+"_"+"fragpress"+'_'+"{:03d}".format(timestep)+".png")
         plt.close(fig)
+        
+        
+        fig, ax = plt.subplots(dpi=300)
+        scalefac = 1
+        # ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+        levels = np.linspace(0,1,100)
+        mappo = ax.contourf(xx, zz, field[::-1,:]/Plith[::-1,:], levels=np.linspace(0,1,5), extend="max")
+        ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
+        ax.set_xlabel("x ["+xunit+"]")
+        ax.set_ylabel("z ["+zunit+"]")
+        ax.set_ylim(zz.max(), zz.min())
+        fig.colorbar(mappo)
+        ax.set_title("Lithostatic overpressure ratio" + " at t= "+str(time) +' '+timeunit)
+        fig.savefig(code+"_"+"lithpress"+'_'+"{:03d}".format(timestep)+".png")
+        plt.close(fig)
+        
+        
+        
         
     
         
@@ -279,6 +301,13 @@ def ReadRock(infil, Nz):
         iline = 0
         lines = rido .readlines()
         for line in lines:
+            if ("ROCK PROPERTIES") in line:
+                lineadensa = lines[iline+3]
+                rockdensistring = lineadensa.split()[1]
+                if ',' in rockdensistring:
+                    rockdensi = float(rockdensistring[:-1])
+                else:
+                    rocksensi = float(rockdensistring)
             if ("index_of_rock_type(i,k),i=1 to nx, k=1 to nz " in line):
                 break
             else:
@@ -299,7 +328,7 @@ def ReadRock(infil, Nz):
                     for i in range(int(n)):
                         linea.append(float(r))
             grida.append(linea)
-        return np.flip(np.array(grida), axis=0)
+        return np.flip(np.array(grida), axis=0), rockdensi
                         
                 
 
@@ -327,6 +356,9 @@ def read_porosity(filename):
     porosity_array = np.array(porosity_data).reshape(n_rows, 16)
     return porosity_array
 
+
+def lithostatic_pressure(rho_rock,z):
+    return rho_rock*1000*9.81*z*1e-6
                 
         
         
@@ -351,15 +383,14 @@ def gifferino ():
         
 
 
-simulaz = "JC008_00"
+simulaz = "JC092_00"
 os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 # os.chdir("t014_fold/"+simulaz)
 
-rocks = ReadRock(simulaz+".in", 5)
+rocks, densi = ReadRock(simulaz+".in", 5)
 print("Read rock distribution")
-
 poro=read_porosity("Out_porosity."+simulaz+".out")
-readPlotScalar("Plot_scalar."+simulaz+".out", rocks, poro)
+readPlotScalar("Plot_scalar."+simulaz+".out", rocks, densi,  poro)
 print("Plot of scalar quantities done")
 # readPlotVector("Plot_vector."+simulaz+".out", rocks)
 print("Plot of vector quantities done")
