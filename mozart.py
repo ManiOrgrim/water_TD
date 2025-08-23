@@ -62,11 +62,6 @@ Tbots    = [110, 125, 150, 175, 200, 225, 250, 300, 500,650, 800, 999]
 def from_millidarcy2sqr_cm(millidarcy):
     return millidarcy*9.863e-12
 
-HPperm = from_millidarcy2sqr_cm(346)
-HPporo = 0.372
-LPperm = 1.0e-28
-LPporo = 1.0e-02#0.01+np.random.rand()*0.09
-Dz =  50
 
 # for jcond in range (len(simnames)):
 #     flux = 0 #`tipycal ranges around 20000
@@ -105,19 +100,27 @@ intempes = [100,200,300,100,200,300,100,200,300]
 #     print(runs)
 #     runs = np.array(runs)
 #     np.save(simname+".npy", runs),    mass flux 10**[-3, 3]
-seed = 2    #HC: seed 0, multisource,   mass flux 10**[-3, 3]
+seed = 3    #HC: seed 0, multisource,   mass flux 10**[-3, 3]
             #IC: seed 1, monosource     mass flux 10**[-3, 3]
             #JC: seed 2, Ttop 50°C      mass flux 10**[-3, 3]
             #KC: seed 3, Ttop 50°C      mass flux 10**[-5, 1]
+            #KB: seed 3, Ttop 50°C      mass flux 10**[-5, 1]
+
+HPperm = from_millidarcy2sqr_cm(0.1)
+HPporo = 0.154
+LPperm = 1.0e-28
+LPporo = 1.0e-02#0.01+np.random.rand()*0.09
+Dz =  50
+
 np.random.seed(seed)
 simchevogliovedere = [73]
-for jcond in range (900):
+for jcond in range (201):
     flux = 10000*np.random.rand()*4
     Tbot = np.random.rand()*250+50
     intemp = np.random.rand()*250+50
     inmass = 10**(np.random.rand()*6-5)
     runs = []
-    simname = "JC{:03d}_".format(jcond)
+    simname = "KB{:03d}_".format(jcond)
     for irun in range(1):
         overfragm, overlitho,  endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
         runs.append(np.array([irun, flux,Tbot,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, overlitho, overfragm, endtime, explo]))
