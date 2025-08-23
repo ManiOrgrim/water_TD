@@ -20,7 +20,8 @@ data = np.array([np.load(run) for run in runs])[:,0,:]
 overlith = data[:,4].max() >0
     
 class Hydroplot:
-    def __init__(self, data, x_index, xlabel, scale=1, logx = False):
+    def __init__(self, data, x_index, xlabel, scale=1, logx = False, inspect =None):
+        self.inspect=inspect
         self.xlabel = xlabel
         self.logx = logx
         
@@ -41,12 +42,20 @@ class Hydroplot:
         self.TimeFilt = filt[:, -2]
         self.EnerFilt = filt[:, -1]
         self.xfilt = filt[:,x_index]*scale
+        if self.inspect:
+            self.LithInsp = data[self.inspect, -4]
+            self.FragInsp = data[self.inspect, -3]
+            self.TimeInsp = data[self.inspect, -2]
+            self.EnerInsp = data[self.inspect, -1]
+            self.xinsp = data[self.inspect,x_index]*scale
     
     def plot_Frag (self):
         self.fag, self.ax = plt.subplots(dpi = 300)
         self.ax.scatter(self.xdata, self.FragData, s=4, color='limegreen')
         self.ax.scatter(self.xmidf, self.FragMidf, s=4, color='cyan')
         self.ax.scatter(self.xfilt, self.FragFilt, s=4, color='magenta')
+        if self.inspect:
+            self.ax.scatter(self.xinsp, self.FragInsp, s=4, color='red')
         self.ax.set_xlabel(self.xlabel)
         self.ax.set_ylabel(r"Fragmenation overpressure cells fraction")
         if (self.logx):
@@ -57,6 +66,8 @@ class Hydroplot:
         self.ax.scatter(self.xdata, self.LithData, s=4, color='limegreen')
         self.ax.scatter(self.xmidf, self.LithMidf, s=4, color='cyan')
         self.ax.scatter(self.xfilt, self.LithFilt, s=4, color='magenta')
+        if self.inspect:
+            self.ax.scatter(self.xinsp, self.LithInsp, s=4, color='red')
         self.ax.set_xlabel(self.xlabel)
         self.ax.set_ylabel(r"Lithostatic overpressure cells fraction")
         if (self.logx):
@@ -76,6 +87,9 @@ class Hydroplot:
         self.bx2.scatter(self.xmidf, self.TimeMidf/fact, s=6, color='cyan')
         self.bx1.scatter(self.xfilt, self.TimeFilt/fact, s=6, color='magenta')
         self.bx2.scatter(self.xfilt, self.TimeFilt/fact, s=6, color='magenta')
+        if self.inspect:
+            self.bx1.scatter(self.xinsp, self.TimeInsp/fact, s=6, color='red')
+            self.bx2.scatter(self.xinsp, self.TimeInsp/fact, s=6, color='red')
         self.bx1.spines["bottom"].set_visible(False)
         self.bx2.spines["top"].set_visible(False)
         self.bx1.xaxis.tick_top()
@@ -107,6 +121,9 @@ class Hydroplot:
         self.bx2.scatter(self.xmidf, self.EnerMidf/fact, s=6, color='cyan')
         self.bx1.scatter(self.xfilt, self.EnerFilt/fact, s=6, color='magenta')
         self.bx2.scatter(self.xfilt, self.EnerFilt/fact, s=6, color='magenta')
+        if self.inspect:
+            self.bx1.scatter(self.xinsp, self.EnerInsp/fact, s=6, color='red')
+            self.bx2.scatter(self.xinsp, self.EnerInsp/fact, s=6, color='red')
         self.bx1.spines["bottom"].set_visible(False)
         self.bx2.spines["top"].set_visible(False)
         self.bx1.xaxis.tick_top()
@@ -126,7 +143,9 @@ class Hydroplot:
         
         
         
-HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3)
+        
+        
+HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3, inspect=92)
 HeatFlux_HP.plot_Frag()
 if overlith:
     HeatFlux_HP.plot_Lith()
@@ -134,14 +153,14 @@ HeatFlux_HP.plot_Time()
 HeatFlux_HP.plot_Ener()   
 
 
-Tbot_HP = Hydroplot(data, 2, r"Tbot [°C]")
+Tbot_HP = Hydroplot(data, 2, r"Tbot [°C]", inspect=92)
 Tbot_HP.plot_Frag()
 if overlith:
     Tbot_HP.plot_Lith()
 Tbot_HP.plot_Time()
 Tbot_HP.plot_Ener()
 
-TempInf_HP = Hydroplot (data, 3, r"Flux  temperature [°C]")
+TempInf_HP = Hydroplot (data, 3, r"Flux  temperature [°C]", inspect=92)
 TempInf_HP.plot_Frag()
 if overlith:
     TempInf_HP.plot_Lith()
@@ -149,8 +168,9 @@ TempInf_HP.plot_Time()
 TempInf_HP.plot_Ener()
 
 
-MassInf_HP = Hydroplot (data, 4, r"Mass influx [kg/s]", logx=True)
+MassInf_HP = Hydroplot (data, 4, r"Mass influx [kg/s]", logx=True, inspect=92)
 MassInf_HP.plot_Frag()
 if overlith:
     MassInf_HP.plot_Lith()
+MassInf_HP.plot_Time()
 MassInf_HP.plot_Ener()
