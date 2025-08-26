@@ -14,10 +14,10 @@ import os
 
 
 dirs = os.listdir()
-runs = [ runna for runna in dirs if ("JC" in runna and "_.npy" in runna)]
+runs = [ runna for runna in dirs if ("LC" in runna and "_.npy" in runna)]
 
 data = np.array([np.load(run) for run in runs])[:,0,:]
-overlith = data[:,4].max() >0
+overlith = data[:,4].max() 
     
 class Hydroplot:
     def __init__(self, data, x_index, xlabel, scale=1, logx = False, inspect =None):
@@ -26,7 +26,7 @@ class Hydroplot:
         self.logx = logx
         
         self.LithData = data[:, -4]
-        self.FragData = data[:, -3]
+        self.FragData = data[:, -3] 
         self.TimeData = data[:, -2]
         self.EnerData = data[:, -1]
         self.xdata = data[:,x_index]*scale
@@ -142,10 +142,10 @@ class Hydroplot:
             self.bx2.set_xscale("log")
         
         
+
+inspected = 8        
         
-        
-        
-HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3, inspect=92)
+HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3, inspect=inspected)
 HeatFlux_HP.plot_Frag()
 if overlith:
     HeatFlux_HP.plot_Lith()
@@ -153,14 +153,14 @@ HeatFlux_HP.plot_Time()
 HeatFlux_HP.plot_Ener()   
 
 
-Tbot_HP = Hydroplot(data, 2, r"Tbot [°C]", inspect=92)
+Tbot_HP = Hydroplot(data, 2, r"Tbot [°C]", inspect=inspected)
 Tbot_HP.plot_Frag()
 if overlith:
     Tbot_HP.plot_Lith()
 Tbot_HP.plot_Time()
 Tbot_HP.plot_Ener()
 
-TempInf_HP = Hydroplot (data, 3, r"Flux  temperature [°C]", inspect=92)
+TempInf_HP = Hydroplot (data, 3, r"Flux  temperature [°C]", inspect=inspected)
 TempInf_HP.plot_Frag()
 if overlith:
     TempInf_HP.plot_Lith()
@@ -168,7 +168,7 @@ TempInf_HP.plot_Time()
 TempInf_HP.plot_Ener()
 
 
-MassInf_HP = Hydroplot (data, 4, r"Mass influx [kg/s]", logx=True, inspect=92)
+MassInf_HP = Hydroplot (data, 4, r"Mass influx [kg/s]", logx=True, inspect=inspected)
 MassInf_HP.plot_Frag()
 if overlith:
     MassInf_HP.plot_Lith()

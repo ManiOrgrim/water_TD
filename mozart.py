@@ -10,12 +10,12 @@ def singlerun(name, number, flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, 
     if (runname not in os.listdir()):
              os.mkdir(runname)
     os.chdir(runname)
-    # with open(runname+'.in', 'w') as vraito:
-    #     texto = modify_input_sources(flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ)
-    #     vraito.write(texto)
-    # os.system('echo "{}" > comandi'.format(runname+'.in'))
-    # os.system('echo "{}" >> comandi'.format(runname+'.out'))
-    # os.system('cat "comandi" | ../ht.exe')
+    with open(runname+'.in', 'w') as vraito:
+        texto = modify_input_sources(flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ)
+        vraito.write(texto)
+    os.system('echo "{}" > comandi'.format(runname+'.in'))
+    os.system('echo "{}" >> comandi'.format(runname+'.out'))
+    os.system('cat "comandi" | ../ht.exe')
     print("Calculating explosivity..., run number ", name )
     overfragm, overlitho,  runtime, explosivity = boom_eval(runname)
     #print(explosivity)
@@ -99,18 +99,22 @@ intempes = [100,200,300,100,200,300,100,200,300]
   
 #     print(runs)
 #     runs = np.array(runs)
-#     np.save(simname+".npy", runs),    mass flux 10**[-3, 3]
-seed = 3    #HC: seed 0, multisource,   mass flux 10**[-3, 3]
-            #IC: seed 1, monosource     mass flux 10**[-3, 3]
-            #JC: seed 2, Ttop 50°C      mass flux 10**[-3, 3]
-            #KC: seed 3, Ttop 50°C      mass flux 10**[-5, 1]
-            #KB: seed 3, Ttop 50°C      mass flux 10**[-5, 1]
+#     np.save(simname+".npy", runs),    mass flux 10**[-3, 3] Dz=50
+seed = 4    #HC: seed 0, multisource,   mass flux 10**[-3, 3] Dz=50
+            #IC: seed 1, monosource     mass flux 10**[-3, 3] Dz=50
+            #JC: seed 2, Ttop 50°C      mass flux 10**[-3, 3] Dz=50
+            #KC: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
+            #KB: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
+            #KA: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
+            #LC: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
+            #LB: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
+            #LA: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
 
-HPperm = from_millidarcy2sqr_cm(0.1)
-HPporo = 0.154
+HPperm = from_millidarcy2sqr_cm(1845)
+HPporo = 0.341
 LPperm = 1.0e-28
 LPporo = 1.0e-02#0.01+np.random.rand()*0.09
-Dz =  50
+Dz =  20
 
 np.random.seed(seed)
 simchevogliovedere = [73]
@@ -120,7 +124,7 @@ for jcond in range (201):
     intemp = np.random.rand()*250+50
     inmass = 10**(np.random.rand()*6-5)
     runs = []
-    simname = "KB{:03d}_".format(jcond)
+    simname = "LA{:03d}_".format(jcond)
     for irun in range(1):
         overfragm, overlitho,  endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
         runs.append(np.array([irun, flux,Tbot,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, overlitho, overfragm, endtime, explo]))

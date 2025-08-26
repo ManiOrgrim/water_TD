@@ -383,7 +383,7 @@ def gifferino ():
         
 
 
-simulaz = "JC092_00"
+simulaz = "KB008_00"
 os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 # os.chdir("t014_fold/"+simulaz)
 
