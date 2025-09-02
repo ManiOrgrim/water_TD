@@ -8,6 +8,7 @@ Created on Wed Jun 18 07:54:19 2025
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import BOOMER as boom
 
 
 
@@ -69,6 +70,9 @@ def readPlotScalar(filename, rocks, rockrho, poro):
                 reachline +=int(1+Nx/12)*Nz+1 
             except (IndexError):
                 break
+        plotLastTime(x,z, Nx, Nz,timestep+1, code, rocks, rockrho, poro)
+
+
 
 def readPlotVector(filename, rocks):
     with open(filename, 'r' ) as infile:
@@ -126,8 +130,85 @@ def readPlotVector(filename, rocks):
                 reachline +=3*(int(1+Nx/12)*Nz)+3 
 
             except (IndexError):
-                break
+                break 
+    
 
+
+def plotLastTime (x,z, Nx, Nz, timestep, code, rocks, rockrho, poro):
+    xfactor, xunit= convert("m", "m")
+    x = x*xfactor
+    zfactor, zunit= convert("m", "m")
+    z = z*zfactor
+    z = z[::-1]
+    zorig = z[::-1]
+    fields = [("pressure", "dyne/cm^2", boom.read_pressure_file ), ("temperature", "°C", boom.read_temperature_file), ("saturation","-", boom.read_watersat_file)]
+    for fieldname, fieldunit, readf in fields:
+        factor, fieldunit =convert(fieldunit, "MPa")
+        if (fieldname == "saturation"):
+                _, _, _, field, _ = readf("Out_"+fieldname+'.'+simulaz+'.out')
+                field = np.array(field)
+        else:
+                _, _, _, field    = readf("Out_"+fieldname+'.'+simulaz+'.out')
+        field = field[::-1,:]
+        field = field*factor
+        xx, zz = np.meshgrid(x,z)
+        fig, ax = plt.subplots(dpi=300)
+        scalefac = 1
+        if (("Fraction" in fieldname) or ("aturation" in fieldname)):
+            levels = np.linspace(0,1, 100)
+            fieldname = "Water Saturation"
+        elif ("essure" in fieldname):
+            levels = np.linspace(0,1.e1,100)
+            fieldname = "Pressure"
+        elif ("emper" in fieldname):
+            levels = np.linspace(30, 200, 100)
+            fieldname = "Temperature"
+    
+        mappo = ax.contourf(xx, zz, field, levels=levels, extend="both")
+        ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
+        ax.set_xlabel("x ["+xunit+"]")
+        ax.set_ylabel("z ["+zunit+"]")
+        fig.colorbar(mappo)
+        time = boom.read_sim_end(simulaz)
+        ax.set_title(fieldname + " ["+fieldunit +"] at t= "+str(time) +' s')
+        ax.set_ylim(zz.max(), zz.min())
+        fig.savefig(code+"_"+fieldname[:8]+'_'+"{:03d}".format(timestep)+".png")
+        plt.close(fig)
+        if ("ressure" in fieldname):
+            S3 = 2.180   #MPa
+            Pthresh = 2*S3*(1-poro)/(3*poro*np.sqrt(poro**(-1/3)-1))
+            Plith   = np.empty(field.shape)
+            for k, zk in enumerate(z):
+                Plith[k,:] = lithostatic_pressure(rockrho, zk)
+        
+            fig, ax = plt.subplots(dpi=300)
+            scalefac = 1
+            # ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+            levels = np.linspace(0,1,100)
+            mappo = ax.contourf(xx, zz, field/Pthresh[::-1,:], levels=np.linspace(0,1,5), extend="max")
+            ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
+            ax.set_xlabel("x ["+xunit+"]")
+            ax.set_ylabel("z ["+zunit+"]")
+            ax.set_ylim(zz.max(), zz.min())
+            fig.colorbar(mappo)
+            ax.set_title("Fragmentation overpressure ratio" + " at t= "+str(time) +' s')
+            fig.savefig(code+"_"+"fragpress"+'_'+"{:03d}".format(timestep)+".png")
+            plt.close(fig)
+        
+        
+            fig, ax = plt.subplots(dpi=300)
+            scalefac = 1
+            # ax.set_aspect(((max(z)-min(z))/(max(x)-min(x))))
+            levels = np.linspace(0,1,100)
+            mappo = ax.contourf(xx, zz, field[::-1,:]/Plith[::-1,:], levels=np.linspace(0,1,5), extend="max")
+            ax.contour(xx,zz, rocks, colors = 'black',levels=[-1.01, 0.99, 1.99, 2.99, 3.99], linewidths=2)
+            ax.set_xlabel("x ["+xunit+"]")
+            ax.set_ylabel("z ["+zunit+"]")
+            ax.set_ylim(zz.max(), zz.min())
+            fig.colorbar(mappo)
+            ax.set_title("Lithostatic overpressure ratio" + " at t= "+str(time) +' s')
+            fig.savefig(code+"_"+"lithpress"+'_'+"{:03d}".format(timestep)+".png")
+            plt.close(fig)
         
 def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, rockrho, poro):
     xfactor, xunit= convert("m", "m")
@@ -147,7 +228,6 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, rockr
        if (len(riga)==Nx):
            field.append(riga)
            riga = []
-
 
     field = np.array(field)
     field = field*factor
@@ -212,9 +292,7 @@ def plotField (lines, x, z, Nx, Nz, time, timeunit, timestep, code, rocks, rockr
         ax.set_title("Lithostatic overpressure ratio" + " at t= "+str(time) +' '+timeunit)
         fig.savefig(code+"_"+"lithpress"+'_'+"{:03d}".format(timestep)+".png")
         plt.close(fig)
-        
-        
-        
+    
         
     
         
@@ -383,7 +461,7 @@ def gifferino ():
         
 
 
-simulaz = "KB008_00"
+simulaz = "KA088_00"
 os.chdir("C:/Users/manim/Fare_la_Scienza/Dottorato/IAPWS/"+simulaz)
 # os.chdir("t014_fold/"+simulaz)
 
