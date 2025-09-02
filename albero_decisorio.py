@@ -13,12 +13,6 @@ import os
 from collections import Counter
 
 
-dirs = os.listdir()
-runs = [ runna for runna in dirs if ("KB" in runna and "_.npy" in runna)]
-
-data = np.array([np.load(run) for run in runs])[:,0,:]
-
-
         
 
 class Node:
@@ -136,22 +130,6 @@ class DecisionTree:
         
 
 
-        
-        
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
-# data = datasets.load_breast_cancer()
-# X, y = data.data, data.target
-X, y = data[:,1:5], data[:,11]
-
-X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=1234)
-
-clf = DecisionTree()
-clf.fit(X_train, y_train)
-predictions = clf.predict(X_test)
 
 def accuracy(y_test, y_pred):
     return np.sum(y_test == y_pred)/len(y_test)
-    
-acc = accuracy(y_test, predictions)
-print(acc)
