@@ -13,13 +13,18 @@ from sklearn.model_selection import train_test_split
 from RandomForest import RandomForest
 
 dirs = os.listdir()
-runs = [ runna for runna in dirs if ("KB" in runna and "_.npy" in runna)]
+simname= "NB"
+variable = "fragm"
+runs = [ runna for runna in dirs if (simname in runna and "_.npy" in runna)]
 
 data = np.array([np.load(run) for run in runs])[:,0,:]
 low_lim_days =1999
 data = data[data[:,-2]>= 3600*24*low_lim_days]
 
-X, y = data[:,1:5], data[:,10]
+if (variable == "lith"):
+    X, y = data[:,1:5], data[:,10]
+elif (variable == "frag"):
+    X, y = data[:,1:5], data[:,11]
 X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.2, random_state=1234)
 
 print("Planting the forest")
@@ -54,4 +59,4 @@ for flux in fluxes:
 print("Predicting")
 pred,_ = clf.predict(X)
 sets = np.column_stack([X, pred])
-np.save("KB_lith_pred.npy", sets)
+np.save(simname+"_"+variable+"_pred.npy", sets)
