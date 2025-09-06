@@ -16,7 +16,7 @@ import re
 
 
 dirs = os.listdir()
-runs = [ runna for runna in dirs if ("ME" in runna and "_.npy" in runna)]
+runs = [ runna for runna in dirs if ("OE" in runna and "_.npy" in runna)]
 
 codes = [int(run[2:5]) for run in runs]
 
