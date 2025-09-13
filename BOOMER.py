@@ -6,7 +6,7 @@ Created on Sun Jul  6 08:23:31 2025
 """
 
 import iapws95 as eos
-
+import os
 import numpy as np
 
 def find_last_occurrence(filepath, search_string):
@@ -504,6 +504,7 @@ def boom_eval(probname):
     boom_1pweight = 1-(np.isnan(boom_total_1p))  #
     #do average
     boom_total = (boom_2pweight*np.nan_to_num(boom_total_2p) +  boom_1pweight*np.nan_to_num(boom_total_1p))/(boom_2pweight+boom_1pweight)
+    boom_total = np.nan_to_num(boom_total)
     integrated_explo = integrate_explo(x, z, boom_total)
     for i in range(len(boom_total[0,:])):
         boom_total[0,i] = 0
@@ -533,7 +534,7 @@ def integrate_explo(x, z, boom_total):
     #print(z)
     for i in range(nx-1):
         for j in range(nz-1):
-            boom_integrated += (x[i+1]-[i])*(z[j+1]-z[j])*boom_total[j,i]
+            boom_integrated += [i+1]*(x[i+1]-[i])*(z[j+1]-z[j])*boom_total[j,i]
     return boom_integrated
 
 
@@ -572,5 +573,8 @@ def read_sim_end(probname):
 # #def integrate_weight
 # os.chdir("tuno0000")
 # print(boom_eval("tuno0000"))
+
+# os.chdir("AE000_00")
+# boom_eval("AE000_00")
 
     

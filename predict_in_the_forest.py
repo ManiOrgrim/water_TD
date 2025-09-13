@@ -13,12 +13,14 @@ from sklearn.model_selection import train_test_split
 from RandomForest import RandomForest
 
 dirs = os.listdir()
-simname= "NB"
-variable = "fragm"
+simname= "NE"
+variable = "frag"
 runs = [ runna for runna in dirs if (simname in runna and "_.npy" in runna)]
 
+simname= "NE2"
+
 data = np.array([np.load(run) for run in runs])[:,0,:]
-low_lim_days =1999
+low_lim_days =999
 data = data[data[:,-2]>= 3600*24*low_lim_days]
 
 if (variable == "lith"):

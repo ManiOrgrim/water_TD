@@ -16,7 +16,7 @@ import re
 
 
 dirs = os.listdir()
-runs = [ runna for runna in dirs if ("OE" in runna and "_.npy" in runna)]
+runs = [ runna for runna in dirs if ("CE" in runna and "_.npy" in runna)]
 
 codes = [int(run[2:5]) for run in runs]
 
@@ -26,7 +26,7 @@ i=0
 #     d[0]=i
 #     i +=1
 data = np.column_stack([codes, data])
-low_lim_days =1999
+low_lim_days =1
 data = data[data[:,-2]>= 3600*24*low_lim_days]
 
 
@@ -41,26 +41,26 @@ class Hydroplot:
         self.LithData = data[:, -4]
         self.FragData = data[:, -3] 
         self.TimeData = data[:, -2]
-        self.EnerData = -data[:, -1]
+        self.EnerData = data[:, -1]
         self.xdata = data[:,x_index]*scale
         midf = data[data[:,-3]>0]
         
         self.LithMidf = midf[:, -4]
         self.FragMidf = midf[:, -3]
         self.TimeMidf = midf[:, -2]
-        self.EnerMidf = -midf[:, -1]
+        self.EnerMidf = midf[:, -1]
         self.xmidf = midf[:,x_index]*scale
         filt = data[data[:,-3]>0.9]
         self.LithFilt = filt[:, -4]
         self.FragFilt = filt[:, -3]
         self.TimeFilt = filt[:, -2]
-        self.EnerFilt = -filt[:, -1]
+        self.EnerFilt = filt[:, -1]
         self.xfilt = filt[:,x_index]*scale
         if self.inspect:
             self.LithInsp = data[self.inspect, -4]
             self.FragInsp = data[self.inspect, -3]
             self.TimeInsp = data[self.inspect, -2]
-            self.EnerInsp = -data[self.inspect, -1]
+            self.EnerInsp = data[self.inspect, -1]
             self.xinsp = data[self.inspect,x_index]*scale
     
     def plot_Frag (self, s=4):
@@ -109,7 +109,7 @@ class Hydroplot:
         self.bx1.xaxis.tick_top()
         self.bx1.tick_params(labeltop=False)
         self.bx2.xaxis.tick_bottom()
-        self.bx2.set_ylim(0,10)
+        # self.bx2.set_ylim(0,10)
         self.bx1.set_ylim(1999,2001)
         self.bx2.set_xlabel(self.xlabel)
         self.bx2.set_ylabel("Simulation time [{}]".format(timeunit) )
@@ -127,44 +127,43 @@ class Hydroplot:
         else:
             print("Energy unit not implemented")
             assert( 1==2)
-        self.fbg, (self.bx1, self.bx2) = plt.subplots(2,1, sharex=True, gridspec_kw={'height_ratios':[0,5]}, dpi = 300)
-        self.fbg.subplots_adjust(hspace=0.1)
-        self.bx1.scatter(self.xdata, self.EnerData/fact, s=6, color='limegreen')
+        self.fbg, self.bx2 = plt.subplots(dpi = 300)
+        # self.bx1.scatter(self.xdata, self.EnerData/fact, s=6, color='limegreen')
         self.bx2.scatter(self.xdata, self.EnerData/fact, s=6, color='limegreen')
-        self.bx1.scatter(self.xmidf, self.EnerMidf/fact, s=6, color='cyan')
+        # self.bx1.scatter(self.xmidf, self.EnerMidf/fact, s=6, color='cyan')
         self.bx2.scatter(self.xmidf, self.EnerMidf/fact, s=6, color='cyan')
-        self.bx1.scatter(self.xfilt, self.EnerFilt/fact, s=6, color='magenta')
+        # self.bx1.scatter(self.xfilt, self.EnerFilt/fact, s=6, color='magenta')
         self.bx2.scatter(self.xfilt, self.EnerFilt/fact, s=6, color='magenta')
         if self.inspect:
-            self.bx1.scatter(self.xinsp, self.EnerInsp/fact, s=6, color='red')
+            # self.bx1.scatter(self.xinsp, self.EnerInsp/fact, s=6, color='red')
             self.bx2.scatter(self.xinsp, self.EnerInsp/fact, s=6, color='red')
-        self.bx1.spines["bottom"].set_visible(False)
-        self.bx2.spines["top"].set_visible(False)
-        self.bx1.xaxis.tick_top()
-        self.bx1.tick_params(labeltop=False)
+        # self.bx1.spines["bottom"].set_visible(False)
+        # self.bx2.spines["top"].set_visible(False)
+        # self.bx1.xaxis.tick_top()
+        # self.bx1.tick_params(labeltop=False)
         self.bx2.xaxis.tick_bottom()
-        self.bx1.set_ylim(-2860,-2820)
+        # self.bx1.set_ylim(-2860,-2820)
         # self.bx2.set_ylim(-5000,-4200)
         self.bx2.set_xlabel(self.xlabel)
-        self.bx1.set_ylabel("Releasable energy [{}]".format(enerunit) )
+        self.bx2.set_ylabel("Releasable energy [{}]".format(enerunit) )
         d = 0.5
-        kwargs = dict(marker=[(-1, -d), (1,d)], markersize=12, linestyle="none", mec='k', color='k', mew=1, clip_on=False)
-        self.bx1.plot([0,1], [0,0], transform=self.bx1.transAxes, **kwargs)
-        self.bx2.plot([0,1], [1,1], transform=self.bx2.transAxes, **kwargs)
+        # kwargs = dict(marker=[(-1, -d), (1,d)], markersize=12, linestyle="none", mec='k', color='k', mew=1, clip_on=False)
+        # self.bx1.plot([0,1], [0,0], transform=self.bx1.transAxes, **kwargs)
+        # self.bx2.plot([0,1], [1,1], transform=self.bx2.transAxes, **kwargs)
         if (self.logx):
-            self.bx1.set_xscale("log")
+            # self.bx1.set_xscale("log")
             self.bx2.set_xscale("log")
         
         
 
-# inspected = 1
+inspected = None
         
-# HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3, inspect=inspected)
-# HeatFlux_HP.plot_Frag()
-# if overlith:
-#     HeatFlux_HP.plot_Lith()
-# HeatFlux_HP.plot_Time()
-# HeatFlux_HP.plot_Ener()   
+HeatFlux_HP = Hydroplot(data, 1, r"Heat flux [W/m$^2$]", scale=1e-3, inspect=inspected)
+HeatFlux_HP.plot_Frag()
+if overlith:
+    HeatFlux_HP.plot_Lith()
+HeatFlux_HP.plot_Time()
+HeatFlux_HP.plot_Ener()   
 
 
 # Tbot_HP = Hydroplot(data, 2, r"Tbot [°C]", inspect=inspected)

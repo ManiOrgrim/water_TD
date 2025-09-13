@@ -5,13 +5,13 @@ import pexpect
 from BOOMER import boom_eval
 import numpy as np
 
-def singlerun(name, number, flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ):
+def singlerun(name, number, flux, Tbot, gradT, HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ):
     runname = name+"{:02d}".format(number)
     if (runname not in os.listdir()):
              os.mkdir(runname)
     os.chdir(runname)
     with open(runname+'.in', 'w') as vraito:
-        texto = modify_input_sources(flux, Tbot, HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ)
+        texto = modify_input_sources(flux, Tbot, gradT,  HPperm, HPporo, LPperm, LPporo, inmass, intemp,  dZ)
         vraito.write(texto)
     os.system('echo "{}" > comandi'.format(runname+'.in'))
     os.system('echo "{}" >> comandi'.format(runname+'.out'))
@@ -99,45 +99,51 @@ intempes = [100,200,300,100,200,300,100,200,300]
   
 #     print(runs)
 #     runs = np.array(runs)
-#     np.save(simname+".npy", runs),    mass flux 10**[-3, 3] Dz=50
-seed = 5    #HC: seed 0, multisource,   mass flux 10**[-3, 3] Dz=50
-            #IC: seed 1, monosource     mass flux 10**[-3, 3] Dz=50
-            #JC: seed 2, Ttop 50°C      mass flux 10**[-3, 3] Dz=50
-            #KC: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
-            #KB: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
-            #KA: seed 3, Ttop 50°C      mass flux 10**[-5, 1] Dz=50
-            #LC: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
-            #LB: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
-            #LA: seed 4, Ttop 50°C      mass flux 10**[-5, 1] Dz=20
-            #MA: seed 5, Ttop 50°C      mass flux 10**[-5, 1] Dz=10
-            #MB: seed 5, Ttop 50°C      mass flux 10**[-5, 1] Dz=10
-            #ME: seed 5, Ttop 50°C      mass flux 10**[-5, 1] Dz=10
 
-medium_parameters = "E"
+            
+            #AE: seed 1 Dz= 10m, T calcolata in base al flusso
+            #AF: seed 4 Dx =10m solo flusso di calore
+            #BE: seed 2 Dz= 20m, solo flusso di calore 
+            #CE: seed 3 Dz= 5  m, solo flusso di calore
+            
+            # Le B hanno un permebilità bassina, meglio le E. Poi proviamo con un odg più alto
+
+seed = 4
+simma = "AF"
+Dz =  10
+medium_parameters=simma[-1]
 if (medium_parameters == "B"):
     HPperm = from_millidarcy2sqr_cm(0.1)
     HPporo = 0.154
 elif (medium_parameters == "E"):
     HPperm = from_millidarcy2sqr_cm(5.4)
     HPporo = 0.529
+elif (medium_parameters=="F"):
+    HPperm = from_millidarcy2sqr_cm(5.4)
+    HPporo = 0.40
     
-LPperm = 1.0e-28
-LPporo = 1.0e-02#0.01+np.random.rand()*0.09
-Dz =  10
+    
+LPperm = 1.0e-19
+LPporo = 1.0e-02#0.01+np.random.rand()*0.09\\\
+
 
 np.random.seed(seed)
 
-for jcond in range (201):
-    flux = 10000*np.random.rand()*4
-    Tbot = np.random.rand()*250+50
-    intemp = np.random.rand()*250+50
-    inmass = 10**(np.random.rand()*6-5)
+for jcond in range ( 201):
+    flux = 1000*np.random.rand()*80
+    Tbot = np.random.rand()*300+50
+    gradT= 1e-3*flux/1.5   #get T gradient associated with flux. 1.5 is the rock condictivity in J/(m s K). Reuslt is in K/km
+    intemp = 100#np.random.rand()*300+50
+    inmass = 0#10**(np.random.rand()*8-6)
     runs = []
-    simname = "ME{:03d}_".format(jcond)
+    simname = simma+"{:03d}_".format(jcond)
     for irun in range(1):
-        overfragm, overlitho,  endtime, explo = singlerun(simname, irun, flux,Tbot,HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
-        runs.append(np.array([irun, flux,Tbot,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, overlitho, overfragm, endtime, explo]))
-        os.chdir("..")
+        try:
+          overfragm, overlitho,  endtime, explo = singlerun(simname, irun, flux,Tbot,gradT, HPperm,HPporo,LPperm,LPporo,inmass, intemp, Dz)
+          runs.append(np.array([irun, flux,Tbot,gradT,intemp, inmass,HPperm,HPporo,LPperm,LPporo, Dz, overlitho, overfragm, endtime, explo]))
+          os.chdir("..")
+        except FileNotFoundError:
+            continue
   
     print(runs)
     runs = np.array(runs)

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from plot_ensemble import Hydroplot as HP
 
 
-code ="MB"
+code ="ME"
 data_frag = np.load(code+"_frag_pred.npy")
 data_lith = np.load(code+"_lith_pred.npy")
 #data_frag[:,0:4]
@@ -32,31 +32,34 @@ newdata = np.column_stack([data_frag[:,0:4], data_lith[:,4], data_frag[:,4], vuo
 
 
 contdata = data_frag[::663, :]
-def plot_contourf(contdatas, title, xcol, xsize, xlabel,  ycol, ysize, ylabel):
+def plot_contourf(contdatas, title, xcol, xsize, xlabel,  ycol, ysize, ylabel, xfactor=1, yfactor=1, logy=False):
     fig, ax = plt.subplots(dpi=300)
     levels = np.arange(0,1.05,0.05)
     for contdata in contdatas:
-        Z = np.reshape(contdata[:,-1], (xsize,ysize))
-        X = np.unique(contdata[:,xcol])/1000   
-        Y = np.unique(contdata[:,ycol])
-        turfo = ax.contourf(X,Y,Z, levels=levels, cmap="Greys", alpha = 1)
+        Z = np.reshape(contdata[:,-1], (ysize,xsize))
+        X = np.unique(contdata[:,xcol])/xfactor  
+        Y = np.unique(contdata[:,ycol])/yfactor
+        turfo = ax.contourf(Y,X,Z[::-1,:], levels=levels, alpha = 1)
         # fig.colorbar(turfo)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
+    ax.set_ylabel(xlabel)
+    ax.set_xlabel(ylabel)
     ax.set_title(title)
+    if (logy):
+      ax.set_yscale("log")  
+    fig.colorbar(turfo)
 
-contdatas = [data_frag[i::663, :] for i in range(663)]
-plot_contourf(contdatas, "Fragmentation overpressure", 0,51,"Heat flux [W/m$^2$]",1,51,r"T bottom [°C]" )
-contdata = [data_lith[i::663, :] for i in range(663)]
-plot_contourf(contdatas, "Lithostatic overpressure",0,51,"Heat flux [W/m$^2$]",1,51,r"T bottom [°C]" )
+contdatas = [data_frag[i::663, :] for i in range(1)]
+plot_contourf(contdatas, "Fragmentation overpressure", 0,51,"Heat flux [W/m$^2$]",1,51,r"T bottom [°C]",xfactor=1000)
+contdata = [data_lith[660::663, :] for i in range(1)]
+plot_contourf(contdatas, "Lithostatic overpressure",0,51,"Heat flux [W/m$^2$]",1,51,r"T bottom [°C]" , xfactor=1000)
 
 
 contdatas = [data_frag[:663, :]]
 # contdatas = [c[::13, : for c in contdatas]
-plot_contourf(contdatas, "Fragmentation overpressure", 3,51, "Heat flux [W/m$^2$]",2,13,r"T flux [°C]" )
+plot_contourf(contdatas, "Fragmentation overpressure", 2,13, "Influx temperature [°C]",3,51,r"Influx rate [kg/s]", logy=True)
 contdatas = [data_lith[:663, :]]
 # contdatas = [c[::13, :] for c in contdatas]
-plot_contourf(contdatas, "Lithostatic overpressure",3,51,"Heat flux [W/m$^2$]",2,13,r"T bottom [°C]" )
+plot_contourf(contdatas, "Lithostatic overpressure",2,13,"Influx temperature [°C]",3,51,r"Influx rate [kg/s]", logy=True )
 
 
 

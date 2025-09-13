@@ -59,7 +59,7 @@ class DecisionTree:
         return Node(best_feature, best_thresh, left, right)
 
 
-    def _best_split(self, X, y, feat_idxs):
+    def _best_split_IG(self, X, y, feat_idxs):
         best_gain = -1
         split_idx, split_threshold = None, None
 
@@ -77,7 +77,48 @@ class DecisionTree:
                     split_threshold = thr
 
         return split_idx, split_threshold
+    
+    def _best_split(self, X, y, feat_idxs):
+        """
+        best split using variance reduction
 
+        """
+        best_reduction = -1
+        split_idx, split_threshold = None, None
+
+        for feat_idx in feat_idxs:
+            X_column = X[:, feat_idx]
+            thresholds = np.unique(X_column)
+
+            for thr in thresholds:
+                # calculate the information gain
+                reduction = self._variance_reduction(y, X_column, thr)
+
+                if reduction > best_reduction:
+                    best_reduction = reduction
+                    split_idx = feat_idx
+                    split_threshold = thr
+
+        return split_idx, split_threshold
+    
+    def _variance_reduction(self, y, X_column, threshold):
+        #parent variance
+        parent_variance = np.var(y)
+        # create children
+        left_idxs, right_idxs = self._split(X_column, threshold)
+
+        if len(left_idxs) == 0 or len(right_idxs) == 0:
+            return 0
+        
+        # calculate the weighted avg. variance of children
+        n = len(y)
+        n_l, n_r = len(left_idxs), len(right_idxs)
+        e_l, e_r = np.var(y[left_idxs]), np.var(y[right_idxs])
+        child_variance = (n_l/n) * e_l + (n_r/n) * e_r
+        # calculate the IG
+        variance_reduction = parent_variance - child_variance
+        return  variance_reduction
+        
 
     def _information_gain(self, y, X_column, threshold):
         # parent entropy
