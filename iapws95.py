@@ -581,17 +581,11 @@ def boom_irr_monophase(rho0g, rho0l, S0_g, S0_l, T0):
     for i in range(outrho.shape[0]):
         for j in range (outrho.shape[1]):
             rho = 1.0
-            T   = 500.0 #initial guess
-            rhoT0 = [1.0, 500]
+            T   = 0.0 #initial guess
+            rhoT0 = [1.0, 372]
             outrho[i,j], outT[i,j] = opt.fsolve(boomF, rhoT0, args=(U0[i,j], v0[i,j])) 
             if (outT[i,j]<373):
-                import sys, inspect
-                print("NumPy version:", np.__version__)
-                print("NumPy file   :", getattr(np, "__file__", None))
-                print("np is numpy? :", np is sys.modules.get("numpy"))
-                print("has np.nan?  :", hasattr(np, "nan"))
-                print("has np.NAN?  :", hasattr(np, "NAN"))
-                print("repr(np.nan) :", repr(getattr(np, "nan", None)))
+
                 outT[i,j] = np.nan
             
 
